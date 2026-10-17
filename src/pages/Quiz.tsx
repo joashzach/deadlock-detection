@@ -173,16 +173,16 @@ export function Quiz() {
     <div className="max-w-page mx-auto px-16 py-40">
       <header className="mb-24">
         <h1 className="section-heading text-heading-sm mb-8">Quiz</h1>
-        <p className="text-graphite" data-testid="quiz-progress">
+        <p className="text-graphite" data-testid="quiz-progress" aria-live="polite">
           Question {index + 1} of {QUESTIONS.length} · Score {score}
         </p>
       </header>
 
       <div className="panel p-24">
-        <h2 className="font-semibold text-ink-black mb-16" data-testid="quiz-question">
+        <h2 id="quiz-question" className="font-semibold text-ink-black mb-16" data-testid="quiz-question">
           {question.prompt}
         </h2>
-        <ul className="space-y-8">
+        <ul className="space-y-8" aria-labelledby="quiz-question">
           {question.options.map((option, i) => {
             const isCorrect = i === question.correct;
             const isChosen = i === selected;

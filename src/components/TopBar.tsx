@@ -17,11 +17,18 @@ export function TopBar() {
   const algorithm = useLabStore((s) => s.algorithm);
   const setAlgorithm = useLabStore((s) => s.setAlgorithm);
   const importScenario = useLabStore((s) => s.importScenario);
+  const undo = useLabStore((s) => s.undo);
+  const redo = useLabStore((s) => s.redo);
+  const pastLength = useLabStore((s) => s.past.length);
+  const futureLength = useLabStore((s) => s.future.length);
+  const shortcutsOpen = useLabStore((s) => s.shortcutsOpen);
+  const setShortcutsOpen = useLabStore((s) => s.setShortcutsOpen);
   const location = useLocation();
   const fileRef = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
   const single = isSingleInstanceSystem(scenario);
+  const inLab = location.pathname.startsWith('/lab');
 
   const handleExport = () => {
     const json = serializeScenario(scenarioName, scenario);
@@ -49,25 +56,32 @@ export function TopBar() {
 
   return (
     <header className="border-b border-fog bg-off-white">
-      <div className="flex items-center gap-16 px-16 h-[56px]">
+      <div className="flex flex-wrap items-center gap-x-16 gap-y-8 px-16 py-8 min-h-[56px]">
         <Link to="/" className="font-semibold text-ink-black no-underline shrink-0" aria-label="DeadlockLab home">
-          deadlock<span className="text-ember">lab</span>
+          deadlocklab
         </Link>
 
-        <nav className="hidden md:flex items-center gap-16" aria-label="Primary">
-          {NAV.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={
-                location.pathname.startsWith(item.to)
-                  ? 'text-ink-black font-semibold no-underline'
-                  : 'text-charcoal no-underline hover:underline'
-              }
-            >
-              {item.label}
-            </Link>
-          ))}
+        <nav
+          className="order-last w-full md:order-none md:w-auto flex items-center gap-16 overflow-x-auto"
+          aria-label="Primary"
+        >
+          {NAV.map((item) => {
+            const current = location.pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                aria-current={current ? 'page' : undefined}
+                className={
+                  current
+                    ? 'text-ink-black font-semibold no-underline whitespace-nowrap'
+                    : 'text-charcoal no-underline hover:underline whitespace-nowrap'
+                }
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex-1" />
@@ -88,14 +102,54 @@ export function TopBar() {
           </select>
         </div>
 
-        <div className="hidden sm:flex items-center gap-8">
-          <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
+        {inLab && (
+          <div className="hidden sm:flex items-center gap-8">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={undo}
+              disabled={pastLength === 0}
+              title="Undo (Ctrl+Z)"
+            >
+              Undo
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={redo}
+              disabled={futureLength === 0}
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              Redo
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center gap-8">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => fileRef.current?.click()}
+            aria-label="Import a scenario from a JSON file"
+          >
             Import
           </button>
-          <button type="button" className="btn btn-ghost" onClick={handleExport}>
+          <button type="button" className="btn btn-ghost" onClick={handleExport} aria-label="Export this scenario as JSON">
             Export
           </button>
         </div>
+
+        <button
+          type="button"
+          className="btn btn-outline shrink-0"
+          onClick={() => setShortcutsOpen(!shortcutsOpen)}
+          aria-haspopup="dialog"
+          aria-expanded={shortcutsOpen}
+          aria-label="Keyboard shortcuts"
+          title="Keyboard shortcuts (?)"
+        >
+          ?
+        </button>
 
         <input
           ref={fileRef}

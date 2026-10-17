@@ -68,6 +68,7 @@
   --surface-card-cell: #fafafa;
   --surface-accent-banner: #f2b600;
   --surface-inverse-band: #111111;
+  --surface-scrim: rgba(17, 17, 17, 0.45);
 }
 
 body {

@@ -39,7 +39,18 @@ const CAPABILITIES = [
 
 export function Landing() {
   return (
-    <div className="max-w-page mx-auto px-16 py-56 space-y-56">
+    <>
+      <div className="bg-obsidian text-off-white" data-testid="announcement">
+        <div className="max-w-page mx-auto flex flex-wrap items-center gap-8 px-16 py-8 text-body-sm">
+          <span className="chip chip-amber">T1–T8</span>
+          <span>
+            Every algorithm is verified against the textbook reference cases — detection, avoidance, prevention, and
+            recovery.
+          </span>
+        </div>
+      </div>
+
+      <div className="max-w-page mx-auto px-16 py-56 space-y-56">
       <section>
         <div className="accent-bar mb-16">
           <h1 className="text-heading font-semibold text-ink-black leading-tight">
@@ -67,7 +78,7 @@ export function Landing() {
         <ol className="grid gap-24 sm:grid-cols-3">
           {STEPS.map((s) => (
             <li key={s.n} className="panel p-24">
-              <span className="font-semibold text-ember">{s.n}</span>
+              <span className="chip chip-ember font-semibold">{s.n}</span>
               <h3 className="font-semibold text-ink-black mt-8 mb-8">{s.title}</h3>
               <p className="text-body-sm text-charcoal">{s.body}</p>
             </li>
@@ -98,6 +109,7 @@ export function Landing() {
           Start with the classic deadlock
         </Link>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

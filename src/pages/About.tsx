@@ -1,9 +1,4 @@
-const COMPLEXITY = [
-  { algorithm: 'WFG cycle detection', time: 'O(V + E)', space: 'O(V + E)', note: 'DFS over processes and wait edges.' },
-  { algorithm: 'Multi-instance detection', time: 'O(n² · m)', space: 'O(n · m)', note: 'Repeated scans of the request matrix.' },
-  { algorithm: "Banker's safety", time: 'O(n² · m)', space: 'O(n · m)', note: 'Up to n passes over n processes.' },
-  { algorithm: 'Circular-wait check', time: 'O(n + m)', space: 'O(1)', note: 'Compare resource indices on each request.' },
-];
+import { COMPLEXITY } from '../lib/complexity';
 
 export function About() {
   return (

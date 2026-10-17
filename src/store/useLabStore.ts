@@ -71,6 +71,8 @@ interface LabState {
   selectedNodeId: string | null;
   algorithm: AlgorithmChoice;
   labMode: LabMode;
+  /** Whether the keyboard-shortcuts dialog is showing (toggled with `?`). */
+  shortcutsOpen: boolean;
 
   // ---- active trace (played back by the playback bar + right panel) ----
   traceKind: TraceKind;
@@ -128,6 +130,8 @@ interface LabState {
   // ---- actions: ui ----
   setAlgorithm: (a: AlgorithmChoice) => void;
   setLabMode: (mode: LabMode) => void;
+  setShortcutsOpen: (open: boolean) => void;
+  toggleShortcuts: () => void;
 
   // ---- actions: playback ----
   setPlaying: (playing: boolean) => void;
@@ -257,6 +261,7 @@ export const useLabStore = create<LabState>((set, get) => {
     selectedNodeId: null,
     algorithm: 'auto',
     labMode: 'graph',
+    shortcutsOpen: false,
 
     traceKind: 'detection',
     traceSteps: [],
@@ -655,6 +660,8 @@ export const useLabStore = create<LabState>((set, get) => {
     setAlgorithm: (a) => set({ algorithm: a }),
 
     setLabMode: (mode) => set({ labMode: mode, isPlaying: false }),
+    setShortcutsOpen: (open) => set({ shortcutsOpen: open }),
+    toggleShortcuts: () => set((state) => ({ shortcutsOpen: !state.shortcutsOpen })),
 
     // ---------------- playback ----------------
 

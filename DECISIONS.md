@@ -64,4 +64,35 @@ DeadlockLab therefore initializes `Finish[i] = true` **only when a process holds
 ## 15. Prevention UI surfaces the rule behind every denial
 - Both the toast and the Log panel render the same engine `policyNotice` (`policy`, `rule`, `coffmanCondition`), so the Coffman condition being enforced is always named in text, consistent with the "never colour alone" rule. The Mutual Exclusion policy is presented as an informational card because it is not one of the toggleable conditions.
 
+## 16. Phase 4: persistence, shortcuts, accessibility, responsive
+**Persistence (`src/lib/persistence.ts`, key `deadlocklab:workspace`, `STORAGE_VERSION = 1`)**
+- The saved payload is `{ version, name, scenario, scripts, policies, seed, algorithm, labMode }`.
+- The scenario is validated on the way back in through the *same* Zod schema used for file import (`parseScenarioJson`), so corrupt, truncated, or hand-edited data can never reach the pure engine. Unparseable JSON, a version mismatch, an invalid scenario, or absent storage all resolve to "no saved workspace" rather than an error.
+- Untrusted scalar fields (`policies`, `seed`, `algorithm`, `labMode`) are coerced to defaults. Stored scripts are filtered to instructions whose resource still exists and to processes that still exist, and fall back to freshly generated defaults unless every process is covered — an unusable program can never be restored.
+- Storage is reached through `getStorage()`, which tolerates both a missing `localStorage` and a throwing getter (private mode, disabled storage), and every read/write/remove is wrapped, so persistence is a convenience and never a hard dependency.
+- `hydrateFromStorage()` (before the first render) and `attachPersistence()` (debounced 250 ms store subscriber) are called from `main.tsx` rather than inside the store module. That keeps the store side-effect free and means no test can inherit another test's saved workspace.
+- The test environment's jsdom does not expose `window.localStorage`, so `tests/helpers/storage.ts` installs a real in-memory `Storage` (plus an always-failing variant) instead of mocking the persistence module — the storage API itself is exercised, including its failure modes.
+
+**Keyboard shortcuts (`src/components/useKeyboardShortcuts.ts`, mounted once in `Layout`)**
+- Space play/pause · `→` step forward · `←` step back · `R` reset · `?` dialog · `Esc` close · `Ctrl/⌘+Z` undo · `Ctrl/⌘+Shift+Z` or `Ctrl+Y` redo.
+- Shortcuts never fire while focus is in an input, select, textarea, or contenteditable element, or the browser's own text undo would be stolen. Space is additionally left to focused buttons, links, and tabs, which activate on Space themselves. All playback keys are inert while the shortcuts dialog is open, since the dialog owns the keyboard.
+- `R` is mode-aware: in Simulate mode it restarts the run, in Graph mode it rewinds the trace to step 0 and pauses, and it does nothing when there is no active run.
+- `shortcutsOpen` is store state because two surfaces drive it (the global hook and the TopBar button); the rest of the Lab's UI state stays component-local.
+
+**Accessibility**
+- Skip link to `#main-content`; `aria-current="page"` on the active nav item; `aria-haspopup`/`aria-expanded` on both shortcuts buttons.
+- Tabs carry `id`/`aria-controls` and their panels `role="tabpanel"`/`aria-labelledby` (workspace tabs and the Learn theory tabs); the Learn panel's `aria-labelledby` follows the selected tab.
+- The shortcuts dialog is `role="dialog"` + `aria-modal="true"`, moves focus into itself, traps Tab, restores focus on close, and closes on `Esc` or a backdrop press.
+- The mobile Builder/Analysis sheets are real toggles with `aria-expanded`, and `Esc` closes them.
+- The Learn Coffman checklist states agreement with the engine as text (`✓`/`⚠` plus a sentence), never colour alone, and explains itself as unassessable when the scenario has no process or no resource.
+- The dialog scrim is a token (`--surface-scrim` → `bg-scrim`) rather than an ad-hoc `rgba()`, preserving the no-hard-coded-colours rule.
+
+**Responsive at 390 × 844**
+- The header previously hid the nav and Import/Export behind `hidden md:flex`, which left narrow viewports with no way to reach the other pages. It is now a wrapping flex row: the nav drops to its own second line (`order-last w-full md:order-none md:w-auto`), Import/Export stay visible at every width, and Undo/Redo appear only in the Lab and only from `sm` up (the sidebar has its own pair).
+- Verified with zero horizontal overflow on all five routes, including the simulator tables and the graph canvas.
+
+**Two smaller corrections**
+- The simulator's `free === 0` cell was Ember-coloured text, which `DESIGN.md` does not allow (Ember is a fill or accent, never text). It is now an Ember pill with a `⚠` glyph and a title, consistent with the semantic-state rule. The same fix removed Ember-as-text from the TopBar brand and the Landing step numbers.
+- The complexity reference moved from a local constant in `About` to `src/lib/complexity.ts` and is now rendered as a real table by both `About` and the Learn "Complexity" panel, which previously only linked to About.
+
 

@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import clsx from 'clsx';
 import { useLabStore } from '../store/useLabStore';
 import { SimulatorState } from '../engine/simulator';
 import { ProcessExecutionState, SimulatorScriptCommand } from '../engine/types';
@@ -187,8 +186,15 @@ function RunPanel({ label, run, testId }: { label: string; run: SimulatorState; 
               <td className="text-right text-charcoal tabular-nums">
                 {r.allocated}/{r.total}
               </td>
-              <td className={clsx('text-right tabular-nums', r.free === 0 ? 'text-ember' : 'text-charcoal')}>
-                {r.free}
+              <td className="text-right tabular-nums">
+                {r.free === 0 ? (
+                  <span className="chip chip-ember" title="no instances free">
+                    <span aria-hidden="true">⚠</span>
+                    <span>0</span>
+                  </span>
+                ) : (
+                  <span className="text-charcoal">{r.free}</span>
+                )}
               </td>
             </tr>
           ))}
@@ -249,7 +255,7 @@ function ScriptsEditor() {
               <p className="font-mono text-charcoal mb-4">{p.id}</p>
               <ul className="space-y-4">
                 {instructions.map((instruction, index) => (
-                  <li key={index} className="flex items-center gap-8">
+                  <li key={index} className="flex flex-wrap items-center gap-8">
                     <select
                       className="field w-[110px]"
                       value={instruction.type}

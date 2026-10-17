@@ -28,6 +28,7 @@ export function resetStore(presetId?: string): void {
     selectedNodeId: null,
     algorithm: 'auto',
     labMode: 'graph',
+    shortcutsOpen: false,
     detection: null,
     traceSteps: [],
     stepIndex: 0,

@@ -16,6 +16,7 @@ export default {
         ember: "var(--color-ember)",
         "signal-blue": "var(--color-signal-blue)",
         amber: "var(--color-amber)",
+        scrim: "var(--surface-scrim)",
       },
       fontFamily: {
         mono: "var(--font-ui-monospace)",
