@@ -257,5 +257,12 @@ describe('Authoritative Reference Tests T1 - T8', () => {
     // Circular-wait policy rejected P4's backwards request, preventing mutual deadlock
     expect(finalSnapshot.events.some((e) => e.outcome === 'rejected_policy')).toBe(true);
     expect(finalSnapshot.events.some((e) => e.policyNotice?.coffmanCondition === 'Circular Wait')).toBe(true);
+
+    // With ordering enforced the run must actually COMPLETE (PRD T8): every process
+    // finishes and no deadlock is ever detected, because the denied backwards request
+    // is dropped instead of being retried forever.
+    expect(finalSnapshot.processStatuses.every((s) => s.state === 'Finished')).toBe(true);
+    expect(finalSnapshot.deadlockDetectedAtTick).toBeUndefined();
+    expect(finalSnapshot.isFinished).toBe(true);
   });
 });

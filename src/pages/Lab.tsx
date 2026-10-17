@@ -3,7 +3,10 @@ import { GraphCanvas } from '../components/GraphCanvas';
 import { PlaybackBar } from '../components/PlaybackBar';
 import { RightPanel } from '../components/RightPanel';
 import { Sidebar } from '../components/Sidebar';
+import { SimulatorView } from '../components/SimulatorView';
 import { StatusBanner } from '../components/StatusBanner';
+import { PolicyToast } from '../components/PolicyToast';
+import { usePlaybackLoop } from '../components/usePlayback';
 import { useLabStore } from '../store/useLabStore';
 
 export function Lab() {
@@ -13,6 +16,10 @@ export function Lab() {
   const notice = useLabStore((s) => s.notice);
   const error = useLabStore((s) => s.error);
   const clearMessage = useLabStore((s) => s.clearMessage);
+  const labMode = useLabStore((s) => s.labMode);
+  const setLabMode = useLabStore((s) => s.setLabMode);
+
+  usePlaybackLoop();
 
   return (
     <div className="flex flex-col h-[calc(100vh-56px)] min-h-0">
@@ -49,19 +56,48 @@ export function Lab() {
           className={[
             'w-[320px] shrink-0 border-r border-fog bg-off-white overflow-y-auto',
             'lg:block',
-            sidebarOpen
-              ? 'block absolute inset-0 z-20 lg:static'
-              : 'hidden',
+            sidebarOpen ? 'block absolute inset-0 z-20 lg:static' : 'hidden',
           ].join(' ')}
           aria-label="Scenario builder"
         >
           <Sidebar onClose={() => setSidebarOpen(false)} />
         </aside>
 
-        {/* Center: canvas + playback */}
-        <main className="flex-1 min-w-0 relative" aria-label="Graph canvas">
-          <GraphCanvas />
-          <PlaybackBar />
+        {/* Center: workspace switch + canvas / simulator */}
+        <main className="flex-1 min-w-0 flex flex-col" aria-label="Graph canvas">
+          <div className="tabs shrink-0" role="tablist" aria-label="Workspace">
+            <button
+              type="button"
+              role="tab"
+              className="tab"
+              aria-selected={labMode === 'graph'}
+              onClick={() => setLabMode('graph')}
+              data-testid="workspace-graph"
+            >
+              Graph
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className="tab"
+              aria-selected={labMode === 'simulate'}
+              onClick={() => setLabMode('simulate')}
+              data-testid="workspace-simulate"
+            >
+              Simulator
+            </button>
+          </div>
+
+          {labMode === 'graph' ? (
+            <div className="flex-1 min-h-0 relative">
+              <GraphCanvas />
+              <PlaybackBar />
+            </div>
+          ) : (
+            <div className="flex-1 min-h-0">
+              <SimulatorView />
+            </div>
+          )}
         </main>
 
         {/* Right panel */}
@@ -90,6 +126,7 @@ export function Lab() {
         </div>
       )}
 
+      <PolicyToast />
       <StatusBanner />
     </div>
   );

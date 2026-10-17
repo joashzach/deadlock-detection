@@ -3,6 +3,9 @@ import { useLabStore } from '../store/useLabStore';
 import { PRESETS } from '../scenarios/presets';
 import { generateRandomScenario } from '../lib/random';
 import { Chip } from './ui/Primitives';
+import { BankersPanel } from './BankersPanel';
+import { PreventionPanel } from './PreventionPanel';
+import { RecoveryPanel } from './RecoveryPanel';
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
   const scenario = useLabStore((s) => s.scenario);
@@ -283,6 +286,10 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           {scenario.edges.length === 0 && <li className="text-graphite">No edges yet.</li>}
         </ul>
       </section>
+
+      <BankersPanel />
+      <PreventionPanel />
+      <RecoveryPanel />
     </div>
   );
 }

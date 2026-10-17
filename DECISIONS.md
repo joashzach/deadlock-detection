@@ -39,4 +39,29 @@ DeadlockLab therefore initializes `Finish[i] = true` **only when a process holds
   - **active / highlighted** → Ink Black `#000000` stroke + heavier weight.
 - No proportional fonts, shadows, or rounded cards are introduced; radii stay `9999px` for buttons/chips and `0px` for panels, inputs, and tabs.
 
+## 9. Type-scale tokens are wired into Tailwind
+- `DESIGN.md`'s typography scale lives in CSS custom properties (`--text-body-sm`, `--leading-*`, `--tracking-*`). Phase 3 added a matching Tailwind `fontSize` map so classes such as `text-body-sm` and `text-heading` resolve to those tokens instead of being silently dropped. No hard-coded pixel sizes are used in components.
+
+## 10. A denied request is dropped, not retried (simulator)
+- In the live simulator, a request rejected by a prevention policy with `remedyAction: 'REJECT'` (circular-wait ordering, hold-and-wait) **advances the process's program counter**: the request is denied and the process continues without acquiring that resource. Retrying the identical request forever would hold resources permanently and make a prevented run never terminate.
+- This is what lets the required demo work: naive dining philosophers deadlock with no policy, and **complete** (all processes `Finished`, no deadlock ever detected) once resource ordering is enabled — the backwards request is denied so the cycle never closes. `breakNoPreemption` keeps its distinct `PREEMPT_HELD_RESOURCES` behaviour (release everything, then wait).
+
+## 11. Simulations start from allocations only
+- `initSimulator` builds its start state from the scenario's **assignment** edges only, dropping pre-existing request edges. A request edge on a scenario means "this process is already waiting", which is a mid-run snapshot; a simulation starts at tick 0 with processes `Ready`, and the scripts issue the requests.
+- Without this, a preset that already encodes the wait (dining philosophers ship with `P_i → R_{(i+1)%5}`) would begin already deadlocked, so the enabled policy would never get to inspect the request and the "completes with ordering enabled" demonstration would be impossible. The engine is unchanged; only the stored start state is normalised, and the normalisation is documented here because it changes observable simulator behaviour.
+
+## 12. Trace replay drives the canvas
+- The centre canvas draws `useDisplayedScenario()`, which is the current trace step's snapshot whenever a trace is loaded and the editable scenario otherwise. That is what makes a Banker's provisional allocation or a recovery action visible step by step. Editing the scenario clears the trace (so the canvas returns to the editable state); a Banker's *grant* and a recovery action deliberately commit their new state **without** clearing the trace, so the user can still step back through how the state was reached.
+- `detection` is kept separate from the trace: it always describes the *current* scenario, which is what the status banner and the deadlock emphasis should report.
+
+## 13. `traceSteps` replaces `detectionSteps`
+- Phase 2's `detectionSteps` only ever held detection traces. Phase 3 replays five kinds of trace (`detection`, `banker-safety`, `banker-request`, `recovery`, `simulation`), so the field and the playback bar are named for the trace, and the right panel picks its pseudocode by `traceKind`.
+
+## 14. Motion is applied so it can never hide content
+- `framer-motion` animates the explanation panel on step change and slides the policy toast in, and honours `useReducedMotion()` plus the CSS `prefers-reduced-motion` block.
+- Entrances animate position (and, for text, opacity only from `0.85`) rather than from a fully transparent state, and the toast has no exit animation. If animation frames are throttled (background tab, headless browser), a message can therefore never be left stuck invisible or stuck mounted.
+
+## 15. Prevention UI surfaces the rule behind every denial
+- Both the toast and the Log panel render the same engine `policyNotice` (`policy`, `rule`, `coffmanCondition`), so the Coffman condition being enforced is always named in text, consistent with the "never colour alone" rule. The Mutual Exclusion policy is presented as an informational card because it is not one of the toggleable conditions.
+
 

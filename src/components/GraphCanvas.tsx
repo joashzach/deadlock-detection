@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useLabStore } from '../store/useLabStore';
+import { useDisplayedScenario } from '../store/selectors';
 import { computeCycleEdgeIds } from '../lib/cycleEdges';
 import { StateMarker } from './ui/Primitives';
 
@@ -37,11 +38,11 @@ function trim(from: { x: number; y: number }, to: { x: number; y: number }, from
 }
 
 export function GraphCanvas() {
-  const scenario = useLabStore((s) => s.scenario);
+  const scenario = useDisplayedScenario();
   const positions = useLabStore((s) => s.positions);
   const selectedNodeId = useLabStore((s) => s.selectedNodeId);
   const detection = useLabStore((s) => s.detection);
-  const detectionSteps = useLabStore((s) => s.detectionSteps);
+  const traceSteps = useLabStore((s) => s.traceSteps);
   const stepIndex = useLabStore((s) => s.stepIndex);
   const selectNode = useLabStore((s) => s.selectNode);
   const setNodePosition = useLabStore((s) => s.setNodePosition);
@@ -52,7 +53,7 @@ export function GraphCanvas() {
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ dist: number; k: number; cx: number; cy: number } | null>(null);
 
-  const currentStep = detectionSteps[stepIndex];
+  const currentStep = traceSteps[stepIndex];
 
   const allocatedByResource = useMemo(() => {
     const map = new Map<string, number>();

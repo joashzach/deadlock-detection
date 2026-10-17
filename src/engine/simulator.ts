@@ -241,8 +241,16 @@ export class SimulatorEngine {
               (e) => !(e.type === 'assignment' && e.to === proc.id)
             );
             status.state = 'Waiting';
+          } else {
+            // REJECT (e.g. circular-wait ordering, hold-and-wait): the request is
+            // denied and the process continues *without* acquiring the resource.
+            // Advancing the program counter is what lets a prevented run make
+            // progress and terminate (rather than retrying the same denied request
+            // forever), which is required for the ordered dining-philosophers demo
+            // to complete.
+            status.state = 'Ready';
+            status.programCounter++;
           }
-          // Do not advance PC; retry later or stay blocked
           continue;
         }
 

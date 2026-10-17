@@ -16,7 +16,7 @@ const LABELS: Record<MatrixName, { title: string; hint: string }> = {
 export function MatrixEditor() {
   const scenario = useLabStore((s) => s.scenario);
   const setMatrixCell = useLabStore((s) => s.setMatrixCell);
-  const detectionSteps = useLabStore((s) => s.detectionSteps);
+  const detectionSteps = useLabStore((s) => s.traceSteps);
   const stepIndex = useLabStore((s) => s.stepIndex);
 
   const matrices = useMemo(() => {

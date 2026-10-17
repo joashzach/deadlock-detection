@@ -10,6 +10,10 @@ const CONDITIONS = [
 export function StatusBanner() {
   const detection = useLabStore((s) => s.detection);
   const scenario = useLabStore((s) => s.scenario);
+  const safetyResult = useLabStore((s) => s.safetyResult);
+  const requestResult = useLabStore((s) => s.requestResult);
+  const recoveryResult = useLabStore((s) => s.recoveryResult);
+  const simulator = useLabStore((s) => s.simulator);
 
   if (!detection) {
     return (
@@ -39,6 +43,40 @@ export function StatusBanner() {
         </span>
         {detection.hasDeadlock && detection.cycleMemberIds.length > 0 && (
           <span className="chip chip-amber">Cycle members: {detection.cycleMemberIds.join(', ')}</span>
+        )}
+        {safetyResult && (
+          <span
+            className={safetyResult.isSafe ? 'chip chip-inverse' : 'chip chip-ember'}
+            data-testid="banner-safety"
+          >
+            {safetyResult.isSafe
+              ? `✓ Safe · sequence <${(safetyResult.safeSequence ?? []).join(', ')}>`
+              : '⚠ Unsafe — no safe sequence'}
+          </span>
+        )}
+        {requestResult && (
+          <span className="chip" data-testid="banner-request">
+            Request {requestResult.outcome}
+          </span>
+        )}
+        {recoveryResult && (
+          <span
+            className={recoveryResult.resolved ? 'chip chip-inverse' : 'chip chip-amber'}
+            data-testid="banner-recovery"
+          >
+            {recoveryResult.resolved ? '✓ Recovery resolved the deadlock' : '… Recovery incomplete'}
+          </span>
+        )}
+        {simulator && (
+          <span
+            className={
+              simulator.baseline.detectionResult?.hasDeadlock ? 'chip chip-ember' : 'chip'
+            }
+            data-testid="banner-simulator"
+          >
+            Simulator tick {simulator.policied.tick}
+            {simulator.baseline.detectionResult?.hasDeadlock ? ' · baseline deadlocked' : ' · baseline clear'}
+          </span>
         )}
         <span className="text-graphite">
           {scenario.processes.length} processes · {scenario.resources.length} resources

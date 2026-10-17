@@ -20,6 +20,13 @@ export default {
       fontFamily: {
         mono: "var(--font-ui-monospace)",
       },
+      fontSize: {
+        'body-sm': ["var(--text-body-sm)", { lineHeight: "var(--leading-body-sm)", letterSpacing: "var(--tracking-body-sm)" }],
+        body: ["var(--text-body)", { lineHeight: "var(--leading-body)", letterSpacing: "var(--tracking-body)" }],
+        subheading: ["var(--text-subheading)", { lineHeight: "var(--leading-subheading)", letterSpacing: "var(--tracking-subheading)" }],
+        'heading-sm': ["var(--text-heading-sm)", { lineHeight: "var(--leading-heading-sm)", letterSpacing: "var(--tracking-heading-sm)" }],
+        heading: ["var(--text-heading)", { lineHeight: "var(--leading-heading)", letterSpacing: "var(--tracking-heading)" }],
+      },
       spacing: {
         '8': 'var(--spacing-8)',
         '16': 'var(--spacing-16)',
