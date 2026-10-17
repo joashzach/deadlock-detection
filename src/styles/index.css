@@ -85,3 +85,174 @@ body {
   border-left: 2px solid var(--color-ember);
   padding-left: 8px;
 }
+
+/* ------------------------------------------------------------------ */
+/* Design-system component layer — every value references a token.     */
+/* ------------------------------------------------------------------ */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-mono font-medium transition-colors;
+    border-radius: var(--radius-full);
+    padding: 8px 16px;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    letter-spacing: var(--tracking-body-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-ember {
+    background-color: var(--color-ember);
+    color: var(--color-off-white);
+  }
+  .btn-ember:hover:not(:disabled) {
+    background-color: var(--color-obsidian);
+  }
+  .btn-ghost {
+    background-color: transparent;
+    color: var(--color-charcoal);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    color: var(--color-ink-black);
+    text-decoration: underline;
+  }
+  .btn-outline {
+    background-color: transparent;
+    color: var(--color-charcoal);
+    border-color: var(--color-fog);
+  }
+  .btn-outline:hover:not(:disabled) {
+    background-color: var(--color-obsidian);
+    color: var(--color-off-white);
+    border-color: var(--color-obsidian);
+  }
+  .btn-inverse {
+    background-color: var(--color-obsidian);
+    color: var(--color-off-white);
+  }
+  .btn-inverse:hover:not(:disabled) {
+    background-color: var(--color-ink-black);
+  }
+
+  .panel {
+    background-color: var(--surface-card-cell);
+    border: 1px solid var(--color-fog);
+    border-radius: var(--radius-cards);
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 font-mono;
+    border-radius: var(--radius-full);
+    padding: 2px 10px;
+    font-size: var(--text-body-sm);
+    line-height: var(--leading-body-sm);
+    border: 1px solid var(--color-fog);
+    color: var(--color-charcoal);
+    background-color: var(--surface-canvas);
+    white-space: nowrap;
+  }
+  .chip-inverse {
+    background-color: var(--color-obsidian);
+    color: var(--color-off-white);
+    border-color: var(--color-obsidian);
+  }
+  .chip-ember {
+    background-color: var(--color-ember);
+    color: var(--color-off-white);
+    border-color: var(--color-ember);
+  }
+  .chip-amber {
+    background-color: var(--color-amber);
+    color: var(--color-obsidian);
+    border-color: var(--color-amber);
+  }
+
+  .field {
+    @apply font-mono;
+    background-color: var(--surface-canvas);
+    border: 1px solid var(--color-fog);
+    border-radius: var(--radius-inputs);
+    padding: 6px 8px;
+    font-size: var(--text-body-sm);
+    color: var(--color-charcoal);
+    width: 100%;
+  }
+  .field:focus {
+    outline: 2px solid var(--color-ink-black);
+    outline-offset: -1px;
+  }
+
+  .tabs {
+    @apply flex;
+    border-bottom: 1px solid var(--color-fog);
+  }
+  .tab {
+    @apply font-mono;
+    background: transparent;
+    color: var(--color-charcoal);
+    border: none;
+    border-radius: var(--radius-tabs);
+    padding: 8px 12px;
+    font-size: var(--text-body-sm);
+    cursor: pointer;
+  }
+  .tab[aria-selected='true'] {
+    background-color: var(--color-obsidian);
+    color: var(--color-off-white);
+  }
+  .tab:hover[aria-selected='false'] {
+    color: var(--color-ink-black);
+    text-decoration: underline;
+  }
+
+  .section-heading {
+    @apply font-mono;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-ink-black);
+    border-left: 2px solid var(--color-ember);
+    padding-left: 8px;
+  }
+
+  .link {
+    color: var(--color-signal-blue);
+    text-decoration: none;
+  }
+  .link:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Visible focus for keyboard users */
+:focus-visible {
+  outline: 2px solid var(--color-ink-black);
+  outline-offset: 2px;
+}
+
+/* Deadlock pulse — pairs with icon + label, never color alone */
+@keyframes deadlock-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.deadlock-pulse {
+  animation: deadlock-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deadlock-pulse {
+    animation: none;
+  }
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+

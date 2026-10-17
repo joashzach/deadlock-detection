@@ -24,3 +24,19 @@ DeadlockLab therefore initializes `Finish[i] = true` **only when a process holds
 ## 5. Single-Instance Detector vs. Matrix Detector Agreement
 - For single-instance systems, `detectDeadlock` auto-selects the WFG DFS cycle detector; the matrix detector remains available as a manual override. A 500-case seeded property test asserts both detectors report identical deadlocked sets, that cycle members are a subset of the matrix deadlocked set, and that `Available = Total − ΣAllocation` always holds.
 
+## 6. Routing
+- `react-router-dom` v6 with the `v7_startTransition` and `v7_relativeSplatPath` future flags enabled, so the app boots with zero console warnings. A tiny dependency was preferred over hand-rolling history handling, since deep-linkable pages (`/`, `/lab`, `/learn`, `/quiz`, `/about`) are a PRD requirement.
+
+## 7. Scenario representation (single source of truth)
+- The store keeps the scenario as `{ processes, resources, edges, max? }`. Allocation, Request, Need, and Available are **always derived** from the graph via `deriveMatricesFromRAG`, so the graph and the matrices can never disagree.
+- `Available` is therefore read-only in the matrix editor (the invariant `Available = Total − Σ Allocation` is enforced by construction); change a resource's total instance count instead. Editing Allocation/Request edits the corresponding graph edges; editing Need sets `Max = Allocation + Need`.
+
+## 8. Semantic state colours
+- `DESIGN.md` defines a strictly monochrome palette plus one warm accent, and states meaning must never rely on colour alone. Semantic states therefore pair a token colour with a glyph and a text label everywhere:
+  - **danger / deadlock** → Ember `#f35815` fill (the palette's only warm accent) + `⚠` + label + a subtle pulse (disabled under `prefers-reduced-motion`).
+  - **warning / waiting** → Amber `#f2b600` fill + `…` + label.
+  - **success / safe** → Obsidian `#111111` inverted fill + `✓` + label (kept monochrome rather than inventing a green).
+  - **active / highlighted** → Ink Black `#000000` stroke + heavier weight.
+- No proportional fonts, shadows, or rounded cards are introduced; radii stay `9999px` for buttons/chips and `0px` for panels, inputs, and tabs.
+
+

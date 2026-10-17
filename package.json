@@ -16,11 +16,13 @@
     "verify": "npm run typecheck && npm run lint && npm run test:cov && npm run build && npm run test:e2e"
   },
   "dependencies": {
+    "@testing-library/dom": "^10.4.2",
     "clsx": "^2.1.1",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.475.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.6",
     "tailwind-merge": "^2.6.0",
     "zod": "^3.24.2",
     "zustand": "^5.0.3"
