@@ -10,15 +10,6 @@ interface PolicyNotice {
 
 const DISMISS_MS = 6000;
 
-/**
- * Shows a toast whenever a prevention policy blocks or alters a simulation action,
- * naming the policy, the rule it enforces, and the Coffman condition behind it (PRD 4.4).
- * The same events are also listed in the Log panel, so nothing is lost when it fades.
- *
- * The entrance animates a small offset rather than opacity so the message can never
- * be left invisible if animation frames are throttled, and dismissal is immediate
- * (no exit animation to wait on).
- */
 export function PolicyToast() {
   const simulator = useLabStore((s) => s.simulator);
   const [notice, setNotice] = useState<PolicyNotice | null>(null);
@@ -53,19 +44,23 @@ export function PolicyToast() {
       initial={reducedMotion ? false : { y: 12 }}
       animate={{ y: 0 }}
       transition={{ duration: reducedMotion ? 0 : 0.18 }}
-      className="fixed bottom-[96px] right-16 z-30 panel p-16 max-w-[380px] accent-bar"
+      className="fixed bottom-[64px] right-24 z-50 bg-white border border-line border-l-4 border-l-warning p-16 max-w-[380px] shadow-none rounded-none"
       role="status"
       aria-live="polite"
       data-testid="policy-toast"
     >
-      <p className="font-semibold text-ink-black mb-4">
-        <span aria-hidden="true">⚠</span> {notice.policy} blocked a request
+      <p className="font-poppins text-[13px] font-semibold text-ink mb-4">
+        {notice.policy} blocked a request
       </p>
-      <p className="text-body-sm text-charcoal mb-4">{notice.rule}</p>
-      <p className="text-body-sm text-graphite">
-        Enforces <span className="font-semibold text-charcoal">{notice.coffmanCondition}</span>
+      <p className="font-mono text-[12px] text-muted mb-4 leading-relaxed">{notice.rule}</p>
+      <p className="font-mono text-[12px] text-muted">
+        Enforces <span className="font-semibold text-ink">{notice.coffmanCondition}</span>
       </p>
-      <button type="button" className="btn btn-ghost mt-4" onClick={() => setNotice(null)}>
+      <button
+        type="button"
+        className="font-mono text-[12px] text-muted hover:text-ink mt-8 cursor-pointer rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
+        onClick={() => setNotice(null)}
+      >
         dismiss
       </button>
     </motion.div>

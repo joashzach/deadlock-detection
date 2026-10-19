@@ -96,16 +96,50 @@ describe('Landing page', () => {
   beforeEach(() => cleanup());
   afterEach(() => cleanup());
 
-  it('leads with the verified-cases banner and a Lab call to action', () => {
+  it("derives the hero's chip text from the real engine result", () => {
+    const expected = detectDeadlock(PRESETS['classic-deadlock']!.state).result.hasDeadlock
+      ? 'Deadlock detected'
+      : 'No deadlock';
+
     render(
       <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Landing />
       </MemoryRouter>
     );
 
-    expect(screen.getByTestId('announcement')).toHaveTextContent('T1–T8');
-    expect(screen.getByRole('link', { name: 'Open the Lab' })).toHaveAttribute('href', '/lab');
+    const chip = screen.getByTestId('hero-status-chip');
+    expect(chip).toHaveTextContent(expected);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('See deadlocks happen');
+  });
+
+  it('renders the three How-it-works columns with exact copy', () => {
+    render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Landing />
+      </MemoryRouter>
+    );
+
+    const cols = screen.getByTestId('how-it-works-columns');
+    expect(cols).toHaveTextContent('01');
+    expect(cols).toHaveTextContent('Build a scenario');
+    expect(cols).toHaveTextContent('02');
+    expect(cols).toHaveTextContent('Run an algorithm');
+    expect(cols).toHaveTextContent('03');
+    expect(cols).toHaveTextContent('Watch and recover');
+    expect(cols).toMatchSnapshot();
+  });
+
+  it('contains no footer and no CTA button', () => {
+    const { container } = render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Landing />
+      </MemoryRouter>
+    );
+
+    expect(container.querySelector('footer')).toBeNull();
+    // No CTA buttons on landing
+    expect(screen.queryByRole('button', { name: /open|start|get started/i })).toBeNull();
+    expect(screen.queryByRole('link', { name: /open the lab|start with the classic/i })).toBeNull();
   });
 
   it('uses no accent-coloured text anywhere on the page', () => {

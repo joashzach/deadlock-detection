@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, act, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from '../../src/components/Layout';
+import { Lab } from '../../src/pages/Lab';
 import { useLabStore } from '../../src/store/useLabStore';
 import { resetStore } from '../helpers/resetStore';
 
@@ -11,7 +12,7 @@ function renderShell(initialPath = '/lab') {
     <MemoryRouter initialEntries={[initialPath]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/lab" element={<div>lab page</div>} />
+          <Route path="/lab" element={<Lab />} />
           <Route path="/learn" element={<div>learn page</div>} />
         </Route>
       </Routes>
@@ -211,8 +212,8 @@ describe('Top bar', () => {
 
   it('keeps the brand monochrome (no accent used as text)', () => {
     renderShell();
-    const brand = screen.getByRole('link', { name: 'DeadlockLab home' });
-    expect(brand).toHaveTextContent('deadlocklab');
+    const brand = screen.getByRole('link', { name: 'DeadLockLab home' });
+    expect(brand).toHaveTextContent('DeadLockLab');
     expect(brand.querySelector('.text-ember')).toBeNull();
   });
 });

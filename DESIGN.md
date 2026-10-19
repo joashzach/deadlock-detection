@@ -1,322 +1,196 @@
-# PlanetScale — Style Reference
-> Terminal man-page in daylight
+# DeadLockLab Design System
+> Precise, restrained, professional operating systems education design system.
 
-**Theme:** light
+## Philosophy & Core Principles
+- **No decoration without a purpose**: No gradients, no glows, no emoji, no decorative icons, no pill shapes, no stat counters, no cards with drop shadows.
+- **Square corners (0px border radius)** across all containers, inputs, buttons, chips, panels, dialogs, and segmented controls.
+- **Hairline 1px borders** (`#DDE1EC`) defining surfaces, tables, panels, and data boundaries.
+- **Flat elevation**: Zero shadows (`box-shadow: none`) across the entire system.
+- **Dual-font discipline**:
+  - **Poppins (500, 600 only)**: Exclusively for structural elements: logo, navigation, headings/titles, buttons, tab labels, segmented control, panel headings, section labels.
+  - **JetBrains Mono (400, 500)**: Exclusively for text and data: all paragraphs and body text, form values, row labels, chips, tags, graph node labels, matrices, logs, pseudocode, numbers, status bar.
+  - *Hard Rule*: Never put body text in Poppins; never put headings in mono.
+- **Brand name**: Exactly "DeadLockLab" (one word, capital D, L, L) everywhere visible.
 
-Source measurements are normalized; roles and recommendations are interpreted. Font summary lists are independent, not paired by position. HTML examples are reconstructions, not source components.
-
-PlanetScale's design system is a developer-first, terminal-flavored monospace UI: the entire interface speaks in fixed-width type, giving every screen the texture of a well-formatted README. The palette is overwhelmingly achromatic — deep charcoal text on near-white canvas, with a vivid orange as the sole action accent and a restrained blue for links. Surfaces are flat and borderless; hierarchy is built through type weight, spacing, and the occasional hairline rule rather than shadow or elevation. Components feel lightweight and utilitarian: pill-shaped buttons, plain text links, raw grid tables, and no decorative chrome. The result reads like a developer tool's reference page, not a marketing brochure — confidence comes from typographic discipline and generous whitespace, not from color or illustration.
+---
 
 ## Tokens — Colors
 
-| Name | Value | Token | Role |
-|------|-------|-------|------|
-| Charcoal | `#414141` | `--color-charcoal` | Primary body text, icon strokes, footer copy, nav labels |
-| Ink Black | `#000000` | `--color-ink-black` | Headings, strong emphasis, logo mark, maximum-contrast text |
-| Graphite | `#737373` | `--color-graphite` | Muted body text, captions, secondary metadata, image alt text |
-| Fog | `#c1c1c1` | `--color-fog` | Hairline borders, table dividers, nav separators, disabled strokes |
-| Off-White | `#fafafa` | `--color-off-white` | Page canvas, card surfaces, input backgrounds |
-| Obsidian | `#111111` | `--color-obsidian` | Dark supporting neutral for text, icons, and strong contrast. Do not promote it to the primary CTA color |
-| Ember | `#f35815` | `--color-ember` | Orange supporting accent for decorative details and low-frequency emphasis. Do not promote it to the primary CTA color |
-| Signal Blue | `#0b6ec5` | `--color-signal-blue` | Blue supporting accent for decorative details and low-frequency emphasis. Do not promote it to the primary CTA color |
-| Amber | `#f2b600` | `--color-amber` | Announcement banner highlight, feature tag accent, promotional inline marker |
+| Name | Hex Value | Token / CSS Variable | Role |
+|------|-----------|----------------------|------|
+| Navy (Primary Accent) | `#0F2557` | `--color-navy` | Primary brand accent, primary CTA fill, active tab underline, logo, active segmented control |
+| Navy Hover | `#0B1B4D` | `--color-navy-hover` | Hover state for primary buttons |
+| Page Tint | `#F3F5FA` | `--color-tint-bg` | App background, subtle panel fills, secondary hover tint |
+| White | `#FFFFFF` | `--color-white` | Surfaces, card backgrounds, navbar background, panels |
+| Ink | `#0B1220` | `--color-ink` | Headings, primary text, high-contrast structural text |
+| Muted Text | `#566079` | `--color-muted` | Body text, explanations, captions, secondary labels, inactive tabs |
+| Line / Border | `#DDE1EC` | `--color-line` | Hairline 1px borders, separators, tab divider rules |
+
+### Semantic Colors
+| State | Foreground Hex | Background / Tint Hex | Tokens | Role |
+|-------|----------------|----------------------|--------|------|
+| Danger | `#B42318` | `#FDECEA` | `--color-danger`, `--color-danger-tint` | Deadlock detected, cycle highlights, error messages |
+| Success | `#067647` | `#E7F6EC` | `--color-success`, `--color-success-tint` | Deadlock-free, safe state, granted requests |
+| Warning | `#B54708` | `#FEF0C7` | `--color-warning`, `--color-warning-tint` | Waiting states, unsafe preview, cautions |
+
+- **No orange anywhere** in the system.
+- Focus ring: `2px solid #0F2557`, `outline-offset: 2px`.
+- Contrast: All foreground/background pairings exceed WCAG AA requirements (≥ 4.5:1).
+
+---
 
 ## Tokens — Typography
 
-### ui-monospace — Universal type family — used for ALL text including headings, body, nav, buttons, and tabs. The monospace-only choice is the system's signature: it forces uniform character widths across the entire interface, giving the page the rhythm of a code editor or man page rather than a traditional marketing site. Weight 500–600 for headings, 400 for body, 700 sparingly for emphasis. Negative letter-spacing (-0.006em) tightens glyphs just enough to avoid the loose feel of raw terminal output. · `--font-ui-monospace`
-- **Substitute:** SF Mono, Menlo, Consolas, "Liberation Mono", monospace
-- **Weights:** 400, 500, 600, 700
-- **Sizes:** 16px
-- **Line height:** 1.00, 1.25, 1.50
-- **Letter spacing:** -0.006em
-- **Role:** Universal type family — used for ALL text including headings, body, nav, buttons, and tabs. The monospace-only choice is the system's signature: it forces uniform character widths across the entire interface, giving the page the rhythm of a code editor or man page rather than a traditional marketing site. Weight 500–600 for headings, 400 for body, 700 sparingly for emphasis. Negative letter-spacing (-0.006em) tightens glyphs just enough to avoid the loose feel of raw terminal output.
+### Primary Typeface: Poppins (`--font-poppins`, @fontsource/poppins)
+- **Weights:** 500 (Medium), 600 (SemiBold)
+- **Scale:**
+  - `logo`: 24px / line-height 1.2 / 600
+  - `nav`: 17px / line-height 1.4 / 500
+  - `page title`: 24px / line-height 1.25 / 600
+  - `h1`: 44px / line-height 1.15 / 600 / letter-spacing -0.015em
+  - `h2`: 32px / line-height 1.2 / 600
+  - `h3` / `right-panel heading`: 17px–22px / line-height 1.3 / 600
+  - `panel heading`: 16px / line-height 1.3 / 600
+  - `section label`: 12px / line-height 1.3 / 600 uppercase, letter-spacing .08em
+  - `buttons`: 14px / line-height 1.3 / 500 / `white-space: nowrap`
+  - `tabs`: 13px / line-height 1.3 / 500 / `white-space: nowrap`
 
-### Type Scale
+### Monospace Typeface: JetBrains Mono (`--font-mono`, @fontsource/jetbrains-mono)
+- **Weights:** 400 (Regular), 500 (Medium)
+- **Scale:**
+  - `mono body`: 14px / line-height 1.8
+  - `mono small`: 12px–13px / line-height 1.5
+  - `chips / tags`: 12px / line-height 1.4 / `white-space: nowrap`
+  - `status bar`: 12px / line-height 1.5 / 500
 
-| Role | Family | Weight | Size | Line Height | Letter Spacing | Token |
-|------|--------|--------|------|-------------|----------------|-------|
-| body-sm | — | — | 14px | 21 | -0.084px | `--text-body-sm` |
-| body | — | — | 16px | 24 | -0.096px | `--text-body` |
-| subheading | — | — | 18px | 27 | -0.108px | `--text-subheading` |
-| heading-sm | — | — | 24px | 32 | -0.144px | `--text-heading-sm` |
-| heading | — | — | 32px | 40 | -0.192px | `--text-heading` |
+---
 
-## Tokens — Spacing & Shapes
-
-**Base unit:** 8px
-
-**Density:** comfortable
-
-### Spacing Scale
-
-| Name | Value | Token |
-|------|-------|-------|
-| 8 | 8px | `--spacing-8` |
-| 16 | 16px | `--spacing-16` |
-| 24 | 24px | `--spacing-24` |
-| 40 | 40px | `--spacing-40` |
-| 48 | 48px | `--spacing-48` |
-| 56 | 56px | `--spacing-56` |
-| 96 | 96px | `--spacing-96` |
-
-### Border Radius
-
-| Element | Value |
-|---------|-------|
-| tabs | 0px |
-| cards | 0px |
-| inputs | 0px |
-| buttons | 9999px |
-
-### Layout
-
-- **Page max-width:** 960px
-- **Section gap:** 56px
-- **Card padding:** 24px
-- **Element gap:** 16px
-
-## Components
-
-### Ember CTA Button
-**Role:** Primary action trigger — highest-priority conversion element
-
-Filled pill button: #f35815 background, #fafafa text, 9999px border-radius, ui-monospace weight 600, ~14px size. Padding 8px 16px. No border. The only chromatic fill in the entire system — its orange warmth is deliberately the loudest thing on screen.
-
-### Ghost Nav Button
-**Role:** Secondary action in navigation bar
-
-Text-only button: #414141 text, transparent background, no border. ui-monospace weight 500, 14px. Sits beside the Ember CTA as the quieter "Get started" path.
-
-### Announcement Banner
-**Role:** Top-of-page promotional strip
-
-Full-width dark band (#111111 or #000000 background), #fafafa text at 14px ui-monospace. A specific phrase is highlighted with #f2b600 background and #111111 text, creating an inline amber pill. Padding 8px vertical, centered content.
-
-### Inline Link
-**Role:** Hyperlink within body copy and navigation
-
-#0b6ec5 text, no underline by default, ui-monospace inherits body size and weight. On hover, underline may appear. This is the only blue element in the system — it carries all navigational and reference linking.
-
-### Top Navigation Bar
-**Role:** Primary site navigation
-
-#fafafa background, no shadow or border. Logo (left), menu items (center, 14px ui-monospace #414141, separated by ~24px gaps with small dropdown carets), auth/CTA cluster (right: "Log in" ghost text, "Get started" ghost, "Get in touch" Ember CTA). Height ~56px.
-
-### Customer Logo Grid
-**Role:** Social proof — displaying companies using the product
-
-Multi-row grid (5 columns, 4+ rows). Each cell has a thin #c1c1c1 or #e5e5e5 border, #fafafa fill, ~80px height, padding 16px. Logos are displayed at native brand colors (not monochrome) to preserve recognizability — this grid is the most colorful area of the entire site.
-
-### Testimonial Quote
-**Role:** Single-customer endorsement with attribution
-
-#414141 quote text at 16px ui-monospace, indented with em-dash attribution line in #737373 at 14px. No card chrome, no background — sits directly on canvas. The quote may be wrapped in quotation marks or left bare.
-
-### Tabbed Content Panel
-**Role:** Switchable product sections (Vitess / Postgres / Nekil)
-
-Horizontal tab bar: active tab has #111111 background with #fafafa text; inactive tabs have transparent background with #414141 text. No border-radius on tabs. Below the tabs, a content area with #fafafa background, body text, and optional code/diagram block. Tabs separated by hairline #c1c1c1 borders.
-
-### Code or Data Block
-**Role:** Terminal output, SQL, or architecture diagram placeholder
-
-Light gray panel (#f2b600 or #e5e5e5 background variant), monospace text centered, represents system architecture or query output. No syntax highlighting complexity — simple monospaced label like "VTGate" on a neutral band.
-
-### Headline Block
-**Role:** Section-level heading with supporting paragraph
-
-Heading at 24–32px ui-monospace weight 600, #000000. A vertical accent bar (2px #f35815) sits to the left of the headline — a signature decorative mark. Body copy follows at 16px weight 400, #414141, max-width constrained to reading measure.
-
-### Accent Bar
-**Role:** Visual prefix marking a notable headline or callout
-
-2px wide, ~24px tall vertical bar in #f35815 (orange), positioned flush-left to a headline. Functions as the system's only decorative element — replaces the need for icons, badges, or colored headings.
-
-## Do's and Don'ts
-
-### Do
-- Set border-radius to 9999px on all buttons and tags; 0px on cards, inputs, tabs, and panels
-- Use #f35815 exclusively as a filled button background — never as text color, border, or decorative fill
-- Write all UI text in ui-monospace at weight 400 for body and 500–600 for headings; never use a proportional font
-- Anchor section headlines with a 2px #f35815 left bar before the text starts
-- Default link color to #0b6ec5; do not style links as buttons or add backgrounds to inline links
-- Keep page content within a 960px max-width centered column; let the canvas breathe with 56px section gaps
-- Use the announcement banner pattern (#111111 band with #f2b600 inline highlight) for top-of-page promotions
-
-### Don't
-- Do not introduce proportional fonts (Inter, Helvetica, etc.) — the monospace-only identity is load-bearing
-- Do not use #0b6ec5 as a filled button or CTA background — it is link color only
-- Do not add drop shadows, glows, or elevation effects — surfaces must remain flat
-- Do not use #f2b600 as a background for cards, buttons, or large surfaces — it is an inline accent marker only
-- Do not round card corners, input fields, or tab panels — keep them sharp (0px radius)
-- Do not stack more than one chromatic color in a single component — the system is monochromatic plus one accent
-- Do not use color to indicate state (hover, active, disabled) — rely on weight changes, underlines, and background inversions
-
-## Surfaces
-
-| Level | Name | Value | Purpose |
-|-------|------|-------|---------|
-| 0 | Canvas | `#fafafa` | Page background, default surface for all content |
-| 1 | Card Cell | `#fafafa` | Logo grid cells and content panels — same as canvas, defined by hairline borders |
-| 2 | Accent Banner | `#f2b600` | Announcement highlight pill — inline emphasis, not a full surface |
-| 3 | Inverse Band | `#111111` | Dark announcement strip, active tab background, high-contrast panels |
-
-## Elevation
-
-The system is deliberately flat: no drop shadows, no glows, no z-axis layering. Depth is communicated through hairline borders, background color inversions, and typographic weight changes. Components sit directly on the canvas — borders separate regions, shadows do not.
-
-## Imagery
-
-The site is nearly imageless by design. The primary visual content is text itself, rendered in monospace to carry visual weight. The only repeated imagery is the customer logo grid, which displays partner brand logos in their native colors — a deliberate exception to the monochrome palette, since recognizability matters more than consistency in social proof. There is no photography, no illustration, no product screenshots, and no abstract graphics. Where a diagram would appear (e.g., the VTGate architecture block), a simple labeled rectangle in a neutral fill stands in for a real illustration.
-
-## Agent Prompt Guide
-
-**Quick Color Reference**
-- text: #414141
-- background: #fafafa
-- border: #c1c1c1
-No distinct primary action color was observed; use the extracted neutral button treatments instead of inventing a filled CTA color.
-- link: #0b6ec5 (Signal Blue)
-- primary action: no distinct CTA color
-
-**3–5 Example Component Prompts**
-1. **Headline with accent bar**: Left-aligned 24px ui-monospace weight 600, #000000, preceded by a 2px-wide 24px-tall #f35815 vertical bar with 8px right gap. Body copy below at 16px weight 400, #414141, line-height 1.5.
-
-
-3. **Inline link**: #0b6ec5 text, ui-monospace inheriting body size/weight, no underline at rest. Sits flush within body copy at #414141.
-
-4. **Customer logo grid cell**: 960px container divided into 5 equal columns, each cell with 1px #c1c1c1 border, #fafafa fill, 16px padding, ~80px min-height. Logos rendered at native brand color.
-
-5. **Tabbed section header**: 3 equal-width tabs in a row. Active tab: #111111 background, #fafafa text. Inactive: transparent background, #414141 text. Tabs separated by 1px #c1c1c1 bottom border. No border-radius.
-
-## Similar Brands
-
-- **Fly.io** — Same developer-targeted monospace-only interface with a near-monochrome palette and a single warm accent color for CTAs
-- **Tailscale** — Text-dense, documentation-flavored layout with minimal imagery, sharp corners, and hairline-bordered grid cells
-- **Cloudflare Workers** — Terminal-inspired type system with orange brand accent, flat surfaces, and code-block-centric content sections
-- **Supabase** — Monospace-forward developer brand with a single emerald accent and generous whitespace between text sections
-
-## Quick Start
-
-### CSS Custom Properties
+## Tokens — Fluid Sizing & Density (Step 1)
 
 ```css
 :root {
-  /* Colors */
-  --color-charcoal: #414141;
-  --color-ink-black: #000000;
-  --color-graphite: #737373;
-  --color-fog: #c1c1c1;
-  --color-off-white: #fafafa;
-  --color-obsidian: #111111;
-  --color-ember: #f35815;
-  --color-signal-blue: #0b6ec5;
-  --color-amber: #f2b600;
-
-  /* Typography — Font Families */
-  --font-ui-monospace: 'ui-monospace', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-
-  /* Typography — Scale */
-  --text-body-sm: 14px;
-  --leading-body-sm: 21;
-  --tracking-body-sm: -0.084px;
-  --text-body: 16px;
-  --leading-body: 24;
-  --tracking-body: -0.096px;
-  --text-subheading: 18px;
-  --leading-subheading: 27;
-  --tracking-subheading: -0.108px;
-  --text-heading-sm: 24px;
-  --leading-heading-sm: 32;
-  --tracking-heading-sm: -0.144px;
-  --text-heading: 32px;
-  --leading-heading: 40;
-  --tracking-heading: -0.192px;
-
-  /* Typography — Weights */
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  /* Spacing */
-  --spacing-unit: 8px;
-  --spacing-8: 8px;
-  --spacing-16: 16px;
-  --spacing-24: 24px;
-  --spacing-40: 40px;
-  --spacing-48: 48px;
-  --spacing-56: 56px;
-  --spacing-96: 96px;
-
-  /* Layout */
-  --page-max-width: 960px;
-  --section-gap: 56px;
-  --card-padding: 24px;
-  --element-gap: 16px;
-
-  /* Border Radius */
-  --radius-full: 9999px;
-
-  /* Named Radii */
-  --radius-tabs: 0px;
-  --radius-cards: 0px;
-  --radius-inputs: 0px;
-  --radius-buttons: 9999px;
-
-  /* Surfaces */
-  --surface-canvas: #fafafa;
-  --surface-card-cell: #fafafa;
-  --surface-accent-banner: #f2b600;
-  --surface-inverse-band: #111111;
+  --nav-h:        clamp(56px, 9.8vh, 88px);
+  --status-h:     clamp(36px, 5.3vh, 48px);
+  --ctrl-h:       clamp(32px, 4.4vh, 40px);   /* buttons, selects, inputs, segmented control */
+  --row-h:        clamp(40px, 5.3vh, 48px);   /* accordion rows, list rows */
+  --chip-h:       clamp(28px, 3.6vh, 32px);
+  --pad:          clamp(16px, 1.7vw, 24px);   /* panel padding */
+  --gap:          clamp(12px, 1.1vw, 16px);
+  --sidebar-w:    clamp(232px, 19.5vw, 280px);
+  --rightpanel-w: clamp(300px, 25vw, 360px);
+  --page-pad-x:   clamp(24px, 6vw, 120px);    /* marketing/Learn/Quiz/About side padding */
+  --fs-logo:      clamp(20px, 1.67vw, 24px);
+  --fs-nav:       clamp(15px, 1.2vw, 17px);
+  --fs-title:     clamp(20px, 1.67vw, 24px);
+  --fs-h2:        clamp(22px, 2.2vw, 28px);
+  --fs-h1:        clamp(30px, 3.1vw, 44px);
+  --fs-panel-heading: clamp(14px, 1.1vw, 16px);
+  --fs-btn:       clamp(13px, 0.97vw, 14px);
+  --fs-body:      clamp(13px, 0.97vw, 14px);  /* mono body */
+  --fs-small:     12px;                        /* never below 11px anywhere */
 }
 ```
 
-### Tailwind v4
+- **Base Rules:**
+  - html font-size stays strictly 16px.
+  - Reference design: 1440x900 where tokens resolve to 88/48/40/48/32/24/24/280/360.
+  - Controls inside one toolbar must all use `--ctrl-h`.
+  - Icon-only buttons are `--ctrl-h` square.
+  - Base Grid: 8px steps. Headings sit 8px above body text; label to control = 8px; control to next label = 24px.
+  - Scrollbars: thin custom scrollbars (`scrollbar-width: thin; scrollbar-color: #DDE1EC transparent`), shown only when genuinely overflowing. No scrollbars inside toolbars, button rows, or tab bars.
+  - Border Width: 1px solid `#DDE1EC`.
+  - Border Radius: 0px everywhere (`rounded-none`).
+  - Shadows: none (`box-shadow: none`).
 
-```css
-@theme {
-  /* Colors */
-  --color-charcoal: #414141;
-  --color-ink-black: #000000;
-  --color-graphite: #737373;
-  --color-fog: #c1c1c1;
-  --color-off-white: #fafafa;
-  --color-obsidian: #111111;
-  --color-ember: #f35815;
-  --color-signal-blue: #0b6ec5;
-  --color-amber: #f2b600;
+---
 
-  /* Typography */
-  --font-ui-monospace: 'ui-monospace', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+## Component Specifications
 
-  /* Typography — Scale */
-  --text-body-sm: 14px;
-  --leading-body-sm: 21;
-  --tracking-body-sm: -0.084px;
-  --text-body: 16px;
-  --leading-body: 24;
-  --tracking-body: -0.096px;
-  --text-subheading: 18px;
-  --leading-subheading: 27;
-  --tracking-subheading: -0.108px;
-  --text-heading-sm: 24px;
-  --leading-heading-sm: 32;
-  --tracking-heading-sm: -0.144px;
-  --text-heading: 32px;
-  --leading-heading: 40;
-  --tracking-heading: -0.192px;
+### 1. Global Navbar
+- Height `var(--nav-h)`, white (`#FFFFFF`), 1px bottom border (`#DDE1EC`).
+- Horizontal padding: `var(--pad)` (Lab) or `var(--page-pad-x)` (marketing/Learn/Quiz/About).
+- Logo: "DeadLockLab" at the left (Poppins `var(--fs-logo)` 600, navy `#0F2557`).
+- Navigation: Lab, Learn, Quiz, About at the right (Poppins `var(--fs-nav)` 500, `clamp(24px, 3vw, 44px)` gaps, full `var(--nav-h)` height so active underline sits on the bar's bottom border).
+- Active tab: ink text (`#0B1220`) + 2px navy bottom border. Inactive: muted (`#566079`). Hover: ink.
+- NO buttons, selects, or icons in the navbar (desktop).
+- Responsive (< 768px): logo + menu button (Poppins); tabs open as a full-width dropdown list (48px rows).
 
-  /* Spacing */
-  --spacing-8: 8px;
-  --spacing-16: 16px;
-  --spacing-24: 24px;
-  --spacing-40: 40px;
-  --spacing-48: 48px;
-  --spacing-56: 56px;
-  --spacing-96: 96px;
+### 2. Button
+- Height `var(--ctrl-h)`, padding `0 clamp(12px, 1.1vw, 16px)`, Poppins `var(--fs-btn)` 500, `white-space: nowrap`, radius 0.
+- Primary: navy fill (`#0F2557`), white text, hover `#0B1B4D`. Only ONE primary button per toolbar/view.
+- Secondary: white fill, ink text, 1px `#DDE1EC` border, hover tint `#F3F5FA`.
+- Disabled: 40% opacity, no hover, cursor not-allowed.
+- Focus: 2px navy ring, 2px offset.
+- Icon-only: `var(--ctrl-h)` square with aria-labels.
 
-  /* Border Radius */
-  --radius-full: 9999px;
-}
-```
+### 3. Input & Select
+- Height `var(--ctrl-h)`, JetBrains Mono `var(--fs-body)`, 1px border `#DDE1EC`, padding `0 clamp(12px, 1.1vw, 16px)`.
+- Left-aligned text (never centered).
+- Focus: navy 1px border + 2px navy ring.
+- Error: danger border + mono 12 danger message below.
+- Focus: navy 1px border + 2px navy ring.
+- Error: danger border + mono 12 danger message below.
+
+### 4. Segmented Control
+- Height 40px, 1px border `#DDE1EC`, each segment padding `0 24px`, Poppins 14/500.
+- Active segment: navy fill (`#0F2557`) + white text.
+- Inactive segment: white background + muted text (`#566079`).
+
+### 5. Tabs
+- Height ~40px–48px, Poppins 13/500, gap 16px, 1px bottom border.
+- Active: ink (`#0B1220`) + 2px navy underline overlapping the bottom border.
+- Inactive: muted (`#566079`).
+- Horizontal scroll inside itself if width < 360px.
+
+### 6. Accordion Row
+- Height 48px, JetBrains Mono 14, 1px top border, count on right in muted.
+- Expands in place to reveal form fields and secondary action buttons. One open at a time.
+
+### 7. Chip & Tag
+- Chip: height 32px, 1px border `#DDE1EC`, 6px state dot + label, mono 12, nowrap.
+- Tag: mono 12, padding `4px 8px`, 1px border with semantic tint (danger / success / warning).
+
+### 8. Panel
+- White background (`#FFFFFF`), 1px solid `#DDE1EC` border, padding 24px, radius 0, shadow none.
+
+### 9. Status Bar
+- Fixed 48px height, white background, 1px top border `#DDE1EC`, padding `0 24px`, JetBrains Mono 12/500.
+- Idle: "● Simulator idle".
+- Detection: Result chip (danger/success) + Coffman conditions in one line.
+- Fixed height: canvas must not move when Detect runs.
+
+---
+
+## Layout Rules
+
+### Lab (/lab)
+- Viewport: `100dvh`, page never scrolls; only inner areas scroll.
+- App background: `#F3F5FA`.
+- Desktop (≥ 1280px): `[sidebar 280px | main flex | right panel 360px]`, status bar 48px fixed at bottom.
+- 1024px–1279px: sidebar 240px, right panel 320px, tabs 13px with horizontal scroll if needed.
+- 768px–1023px (tablet): sidebar drawer opened by "Scenario" button in toolbar; right panel moves below main area as full-width tabbed section; simulator panels stay side by side.
+- < 768px (mobile): single column; toolbar horizontally scrollable (touch targets ≥ 44px); panels stack vertically (graph height ≥ 280px); right panel tabbed section; status bar fixed at bottom; sidebar is full drawer. No horizontal scroll at 360px.
+
+### Landing (/)
+- Strictly 3 parts:
+  1. Global Navbar
+  2. Hero (background `#F3F5FA`, padding `96px 120px` [24px on mobile], 2 columns, gap 96px):
+     - Left: h1 44/1.15/600 ink, mono paragraph 17/1.8 muted, max-width 480px.
+     - Right: White figure card with 1px border, shadow none, mono header + live engine danger chip, live engine-rendered graph.
+  3. "How it works" (white, padding `96px 120px` [24px on mobile]):
+     - Poppins 32/600 heading, 48px gap, 3 equal columns with 2px ink top rule, mono 14 navy step number, Poppins 22/600 title, mono 15/1.8 muted text.
+- No CTA buttons, no footer, no other sections.
+
+### Learn (/learn)
+- Side padding: 120px desktop, 24px mobile.
+- Left sticky topic list (260px; active item has 2px navy left rule).
+- Right content max 720px (Poppins h2, mono body).
+- Coffman checklist bound to current scenario; RAG/WFG engine figures; complexity table in hairline mono.
+- Mobile: topic list becomes horizontally scrolling tab bar.
+
+### Quiz (/quiz)
+- Centered column max 720px.
+- Mono progress line; Poppins 22/600 question; full-width option rows (1px border, 56px min height, selected = navy border); verdict + explanation in mono; one primary Next/Retry button; arrow keys + Enter navigation.
+
+### About (/about)
+- Single column max 720px; Poppins h1; three short mono paragraphs.

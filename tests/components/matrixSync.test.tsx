@@ -86,4 +86,19 @@ describe('Matrix ↔ graph sync (component)', () => {
       .scenario.edges.reduce((s, e) => s + e.count, 0);
     expect(total).toBe(1);
   });
+
+  it('loads "Classic deadlock" and asserts Allocation shows P1→R1 = 1 and P2→R2 = 1', () => {
+    resetStore('classic-deadlock');
+    render(<MatrixEditor />);
+
+    const p1r1 = screen.getByLabelText('Allocation P1 R1') as HTMLInputElement;
+    const p1r2 = screen.getByLabelText('Allocation P1 R2') as HTMLInputElement;
+    const p2r1 = screen.getByLabelText('Allocation P2 R1') as HTMLInputElement;
+    const p2r2 = screen.getByLabelText('Allocation P2 R2') as HTMLInputElement;
+
+    expect(p1r1.value).toBe('1');
+    expect(p1r2.value).toBe('0');
+    expect(p2r1.value).toBe('0');
+    expect(p2r2.value).toBe('1');
+  });
 });

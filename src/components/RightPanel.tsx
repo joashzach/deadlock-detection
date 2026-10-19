@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import clsx from 'clsx';
-import { motion, useReducedMotion } from 'framer-motion';
 import { useLabStore } from '../store/useLabStore';
 import { pseudocodeFor } from '../lib/pseudocode';
 import { MatrixEditor } from './MatrixEditor';
@@ -14,15 +13,6 @@ const TABS: Array<{ id: TabId; label: string }> = [
   { id: 'pseudocode', label: 'Pseudocode' },
 ];
 
-const OUTCOME_TONE: Record<string, string> = {
-  granted: 'chip chip-inverse',
-  released: 'chip chip-inverse',
-  computed: 'chip',
-  finished: 'chip chip-inverse',
-  blocked: 'chip chip-amber',
-  rejected_policy: 'chip chip-ember',
-};
-
 export function RightPanel() {
   const [tab, setTab] = useState<TabId>('explanation');
   const traceSteps = useLabStore((s) => s.traceSteps);
@@ -31,130 +21,172 @@ export function RightPanel() {
   const traceKind = useLabStore((s) => s.traceKind);
   const labMode = useLabStore((s) => s.labMode);
   const simulator = useLabStore((s) => s.simulator);
-  const reducedMotion = useReducedMotion();
 
   const currentStep = traceSteps[stepIndex];
   const algorithm = detection?.algorithmUsed;
   const pseudocode = pseudocodeFor(labMode === 'simulate' ? 'simulation' : traceKind, algorithm);
-  const simulating = labMode === 'simulate' && simulator !== null;
+  const isSimulating = labMode === 'simulate' && simulator !== null;
+  const simTick = simulator?.policied.tick ?? 0;
 
   return (
-    <div className="h-full flex flex-col min-h-0">
-      <div className="tabs" role="tablist" aria-label="Analysis panels">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            id={`tab-${t.id}`}
-            aria-selected={tab === t.id}
-            aria-controls={`panel-${t.id}`}
-            className="tab"
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
+    <div className="h-full flex flex-col min-h-0 bg-white select-none overflow-hidden">
+      {/* Tab bar: 44px, Poppins 13/500, gap 16, 1px bottom border; active = ink + 2px navy underline overlapping the border, inactive = muted */}
+      <div
+        className="px-[24px] flex items-center gap-[20px] border-b border-line bg-white shrink-0 overflow-x-auto overflow-y-hidden select-none h-[44px] min-h-[44px]"
+        role="tablist"
+        aria-label="Analysis panels"
+      >
+        {TABS.map((t) => {
+          const active = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              id={`tab-${t.id}`}
+              aria-selected={active}
+              aria-controls={`panel-${t.id}`}
+              className={clsx(
+                'h-full font-poppins text-[13px] font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center border-b-2 rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy focus-visible:outline-offset-2',
+                active
+                  ? 'text-ink font-semibold border-navy'
+                  : 'text-muted border-transparent hover:text-ink'
+              )}
+              onClick={() => setTab(t.id)}
+            >
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex-1 overflow-y-auto min-h-0">
+      {/* Tab Content: padding 24px */}
+      <div
+        className="flex-1 overflow-y-auto min-h-0 font-mono text-[14px] p-[24px]"
+      >
+        {/* Explanation Tab */}
         {tab === 'explanation' && (
-          <div role="tabpanel" id="panel-explanation" aria-labelledby="tab-explanation" className="p-16">
-            {simulating ? (
-              <SimulationSummary />
+          <div role="tabpanel" id="panel-explanation" aria-labelledby="tab-explanation">
+            {labMode === 'simulate' ? (
+              simTick === 0 ? (
+                // Reference image idle state: Poppins 17/600 heading + 8px gap + mono 14/1.8 muted sentence
+                <div data-testid="simulation-summary">
+                  <h3 className="text-panel-heading mb-8">
+                    Ready to simulate
+                  </h3>
+                  <p className="text-body-mono">
+                    Press Play or Step to advance both runs one tick at a time.
+                  </p>
+                </div>
+              ) : (
+                <SimulationSummary />
+              )
             ) : currentStep ? (
-              <motion.div
-                key={stepIndex}
-                initial={reducedMotion ? false : { y: 4, opacity: 0.85 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: reducedMotion ? 0 : 0.15 }}
-              >
+              <div>
                 <div className="flex items-center gap-8 mb-8">
-                  <span className="chip" data-testid="explanation-step">
+                  <span className="inline-flex items-center px-8 py-2 border border-line bg-tint-bg font-mono text-[12px] text-ink" data-testid="explanation-step">
                     Step {stepIndex + 1} / {traceSteps.length}
                   </span>
                   {currentStep.highlight?.type && (
                     <span
                       className={clsx(
-                        'chip',
-                        currentStep.highlight.type === 'danger' && 'chip-ember',
-                        currentStep.highlight.type === 'warning' && 'chip-amber',
+                        'inline-flex items-center px-8 py-2 border font-mono text-[12px]',
+                        currentStep.highlight.type === 'danger' && 'border-danger/30 bg-danger-tint text-danger',
+                        currentStep.highlight.type === 'warning' && 'border-warning/30 bg-warning-tint text-warning',
                         (currentStep.highlight.type === 'success' || currentStep.highlight.type === 'active') &&
-                          'chip-inverse'
+                          'border-success/30 bg-success-tint text-success'
                       )}
                     >
                       {currentStep.highlight.type}
                     </span>
                   )}
                 </div>
-                <h3 className="font-semibold text-ink-black mb-8" data-testid="explanation-title">
+                <h3 className="text-panel-heading mb-8" data-testid="explanation-title">
                   {currentStep.title}
                 </h3>
-                <p className="text-charcoal leading-relaxed" data-testid="explanation-body">
+                <p className="text-body-mono" data-testid="explanation-body">
                   {currentStep.explanation}
                 </p>
-              </motion.div>
+              </div>
             ) : (
-              <p className="text-graphite">
-                Run an algorithm, then step through it here. Each step explains exactly what happened using the real
-                values from your scenario.
-              </p>
+              <div>
+                <h3 className="text-panel-heading mb-8">
+                  Ready to simulate
+                </h3>
+                <p className="text-body-mono">
+                  Run detection or start playback to inspect step-by-step decisions in plain English.
+                </p>
+              </div>
             )}
           </div>
         )}
 
+        {/* Matrices Tab */}
         {tab === 'matrices' && (
-          <div role="tabpanel" id="panel-matrices" aria-labelledby="tab-matrices">
+          <div role="tabpanel" id="panel-matrices" aria-labelledby="tab-matrices" className="-m-8">
             <MatrixEditor />
           </div>
         )}
 
+        {/* Log Tab */}
         {tab === 'log' && (
-          <div role="tabpanel" id="panel-log" aria-labelledby="tab-log" className="p-16">
-            {simulating ? (
+          <div role="tabpanel" id="panel-log" aria-labelledby="tab-log">
+            {isSimulating ? (
               <SimulationLog />
             ) : traceSteps.length > 0 ? (
               <ol className="space-y-4" data-testid="step-log">
-                {traceSteps.map((step, i) => (
-                  <li key={step.id}>
-                    <button
-                      type="button"
-                      className={clsx(
-                        'w-full text-left font-mono text-body-sm px-8 py-4 border-l-2',
-                        i === stepIndex
-                          ? 'border-ember bg-obsidian text-off-white'
-                          : 'border-transparent text-charcoal hover:underline'
-                      )}
-                      onClick={() => useLabStore.getState().setStepIndex(i)}
-                    >
-                      <span className="text-graphite">{String(i + 1).padStart(2, '0')}</span> {step.title}
-                    </button>
-                  </li>
-                ))}
+                {traceSteps.map((step, i) => {
+                  const active = i === stepIndex;
+                  return (
+                    <li key={step.id}>
+                      <button
+                        type="button"
+                        className={clsx(
+                          'w-full text-left font-mono text-[13px] px-8 py-6 border-l-2 transition-colors cursor-pointer rounded-none',
+                          active
+                            ? 'border-navy bg-tint-bg text-ink font-semibold'
+                            : 'border-transparent text-muted hover:text-ink'
+                        )}
+                        onClick={() => useLabStore.getState().setStepIndex(i)}
+                      >
+                        <span className="text-muted mr-8">{String(i + 1).padStart(2, '0')}</span>
+                        {step.title}
+                      </button>
+                    </li>
+                  );
+                })}
               </ol>
             ) : (
-              <p className="text-graphite">The trace log is empty until an algorithm runs.</p>
+              <p className="font-mono text-[13px] text-muted">No trace log recorded yet.</p>
             )}
           </div>
         )}
 
+        {/* Pseudocode Tab: wrapped, never clipped */}
         {tab === 'pseudocode' && (
-          <div role="tabpanel" id="panel-pseudocode" aria-labelledby="tab-pseudocode" className="p-16">
-            <pre className="font-mono text-body-sm leading-relaxed overflow-x-auto">
+          <div role="tabpanel" id="panel-pseudocode" aria-labelledby="tab-pseudocode" className="font-mono text-[13px]">
+            <div className="font-poppins text-section-label uppercase tracking-wider text-muted font-semibold mb-12">
+              Algorithm: {algorithm === 'single-instance-wfg' ? 'Single-Instance WFG Cycle' : 'Multi-Instance Matrix Reduction'}
+            </div>
+            <pre className="whitespace-pre-wrap break-words leading-relaxed overflow-x-hidden font-mono text-[13px] text-ink">
               {pseudocode.map((line, i) => {
                 const lineNo = i + 1;
-                const active = !simulating && currentStep?.pseudocodeLine === lineNo;
+                const active = !isSimulating && currentStep?.pseudocodeLine === lineNo;
                 return (
                   <div
                     key={lineNo}
                     className={clsx(
-                      'px-8 border-l-2 whitespace-pre',
-                      active ? 'border-ember bg-obsidian text-off-white' : 'border-transparent text-charcoal'
+                      'px-8 py-2 border-l-2',
+                      active
+                        ? 'border-navy bg-tint-bg text-ink font-semibold'
+                        : 'border-transparent text-muted'
                     )}
                     data-line={lineNo}
                     data-active={active}
                   >
-                    <span className="text-graphite select-none">{String(lineNo).padStart(2, ' ')} </span>
+                    <span className="text-line select-none mr-8 font-mono">
+                      {String(lineNo).padStart(2, ' ')}
+                    </span>
                     {line}
                   </div>
                 );
@@ -171,12 +203,13 @@ function SimulationSummary() {
   const simulator = useLabStore((s) => s.simulator);
   if (!simulator) return null;
   const { baseline, policied } = simulator;
+
   const describe = (label: string, run: typeof baseline) => {
     const finished = run.processStatuses.filter((p) => p.state === 'Finished').length;
     return (
-      <li className="mb-4">
-        <span className="font-semibold text-ink-black">{label}:</span>{' '}
-        <span className="text-charcoal">
+      <li className="mb-8">
+        <span className="font-semibold text-ink">{label}:</span>{' '}
+        <span className="text-muted">
           tick {run.tick} · {finished}/{run.processStatuses.length} finished ·{' '}
           {run.detectionResult?.hasDeadlock
             ? `deadlock among ${run.detectionResult.deadlockedProcessIds.join(', ')}`
@@ -185,13 +218,32 @@ function SimulationSummary() {
       </li>
     );
   };
+
+  const workVector = policied.systemState.resources.map((r) => {
+    const allocated = policied.systemState.edges
+      .filter((e) => e.type === 'assignment' && e.from === r.id)
+      .reduce((s, e) => s + e.count, 0);
+    return r.totalInstances - allocated;
+  });
+
+  const finishVector = policied.processStatuses.map((p) => (p.state === 'Finished' ? 'T' : 'F'));
+
   return (
     <div data-testid="simulation-summary">
-      <h3 className="font-semibold text-ink-black mb-8">Live simulation</h3>
-      <p className="text-graphite mb-8">
+      <h3 className="text-panel-heading mb-12">
+        Live simulation
+      </h3>
+      <p className="text-body-mono mb-16">
         Two identical runs: the left one ignores prevention policies, the right one applies the policies you enabled.
       </p>
-      <ul className="text-body-sm">
+
+      {/* Work / Finish vectors */}
+      <div className="border border-line bg-tint-bg p-12 mb-16 font-mono text-[13px] space-y-4">
+        <div>Work = [{workVector.join(',')}]</div>
+        <div>Finish = [{finishVector.join(',')}]</div>
+      </div>
+
+      <ul className="text-[13px] space-y-4">
         {describe('Without policies', baseline)}
         {describe('With policies', policied)}
       </ul>
@@ -204,16 +256,18 @@ function SimulationLog() {
   if (!simulator) return null;
   const events = simulator.policied.events;
   if (events.length === 0) {
-    return <p className="text-graphite">No events yet — press Play or Step to advance the simulation.</p>;
+    return <p className="font-mono text-[13px] text-muted">No events yet — press Play or Step to advance the simulation.</p>;
   }
   return (
-    <ol className="space-y-4 font-mono text-body-sm" data-testid="simulation-log">
+    <ol className="space-y-4 font-mono text-[13px]" data-testid="simulation-log">
       {events.map((event, i) => (
         <li key={i} className="flex items-start gap-8 border-l-2 border-transparent px-8 py-4">
-          <span className="text-graphite tabular-nums shrink-0">t{event.tick}</span>
-          <span className="shrink-0 text-charcoal">{event.processId}</span>
-          <span className="flex-1 text-charcoal">{event.action}</span>
-          <span className={clsx(OUTCOME_TONE[event.outcome] ?? 'chip')}>{event.outcome}</span>
+          <span className="text-muted tabular-nums shrink-0">t{event.tick}</span>
+          <span className="shrink-0 text-ink font-semibold">{event.processId}</span>
+          <span className="flex-1 text-muted">{event.action}</span>
+          <span className="inline-flex items-center px-6 py-2 border border-line bg-tint-bg font-mono text-[11px] text-ink">
+            {event.outcome}
+          </span>
         </li>
       ))}
     </ol>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLabStore } from '../store/useLabStore';
 import { RecoveryStrategy } from '../engine/types';
-import { Chip } from './ui/Primitives';
+import { Button } from './ui/Button';
 
 const STRATEGIES: Array<{ value: RecoveryStrategy; label: string; hint: string }> = [
   { value: 'TERMINATE_VICTIM', label: 'Terminate victim', hint: 'Remove one deadlocked process (fewest resources held, or pick one).' },
@@ -34,57 +34,62 @@ export function RecoveryPanel() {
   };
 
   return (
-    <section data-testid="recovery-panel">
-      <h2 className="section-heading mb-8">Recovery</h2>
+    <section data-testid="recovery-panel" className="space-y-12">
+      <h2 className="font-poppins text-panel-heading font-semibold text-ink">Recovery</h2>
 
       {!detection && (
-        <div className="panel p-16 mb-8">
-          <p className="text-body-sm text-charcoal mb-8">Run detection first to find the deadlocked set.</p>
-          <button type="button" className="btn btn-outline" onClick={runDetection}>
+        <div className="border border-line bg-white p-12">
+          <p className="font-mono text-[12px] text-muted mb-8">Run detection first to find the deadlocked set.</p>
+          <Button variant="secondary" onClick={runDetection}>
             Detect deadlock
-          </button>
+          </Button>
         </div>
       )}
 
       {detection && !detection.hasDeadlock && (
-        <div className="panel p-16 mb-8" data-testid="recovery-nothing">
-          <Chip tone="inverse">✓ No deadlock</Chip>
-          <p className="text-body-sm text-charcoal mt-8">Nothing to recover — the system is not deadlocked.</p>
+        <div className="border border-line bg-white p-12" data-testid="recovery-nothing">
+          <span className="inline-flex items-center px-8 py-4 border border-success/30 bg-success-tint font-mono text-[12px] text-success">
+            ✓ No deadlock
+          </span>
+          <p className="font-mono text-[12px] text-muted mt-8">Nothing to recover — the system is not deadlocked.</p>
         </div>
       )}
 
       {detection && detection.hasDeadlock && (
         <>
-          <p className="text-graphite mb-8">
-            Deadlocked: <span className="font-mono text-charcoal">{deadlocked.join(', ')}</span>
+          <p className="font-mono text-[13px] text-muted">
+            Deadlocked: <span className="font-mono text-danger font-semibold">{deadlocked.join(', ')}</span>
           </p>
 
-          <fieldset className="space-y-4 mb-8" disabled={!canRecover}>
+          <fieldset className="space-y-6" disabled={!canRecover}>
             <legend className="sr-only">Recovery strategy</legend>
             {STRATEGIES.map((s) => (
-              <label key={s.value} className="flex items-start gap-8 panel p-16 cursor-pointer">
+              <label key={s.value} className="flex items-start gap-8 border border-line bg-white p-12 cursor-pointer select-none">
                 <input
                   type="radio"
                   name="recovery-strategy"
-                  className="mt-4"
+                  className="mt-4 rounded-none border-line text-navy focus:ring-0 focus:outline-navy"
                   value={s.value}
                   checked={strategy === s.value}
                   data-testid={`recovery-${s.value}`}
                   onChange={() => setStrategy(s.value)}
                 />
-                <span>
-                  <span className="font-semibold text-ink-black block mb-4">{s.label}</span>
-                  <span className="block text-body-sm text-graphite">{s.hint}</span>
-                </span>
+                <div>
+                  <span className="font-poppins text-[13px] font-semibold text-ink block mb-2">{s.label}</span>
+                  <span className="block font-mono text-[12px] leading-relaxed text-muted">{s.hint}</span>
+                </div>
               </label>
             ))}
           </fieldset>
 
           {strategy === 'TERMINATE_VICTIM' && (
-            <label className="block mb-8">
-              <span className="block mb-4 text-graphite">Victim</span>
+            <div>
+              <label className="block mb-4 font-mono text-[12px] text-muted" htmlFor="victim-select">
+                Victim
+              </label>
               <select
-                className="field"
+                id="victim-select"
+                className="w-full h-40 px-12 bg-white font-mono text-[14px] text-ink border border-line rounded-none outline-none focus:border-navy cursor-pointer"
                 value={victim}
                 aria-label="Victim process"
                 onChange={(e) => setVictim(e.target.value)}
@@ -96,15 +101,18 @@ export function RecoveryPanel() {
                   </option>
                 ))}
               </select>
-            </label>
+            </div>
           )}
 
           {strategy === 'PREEMPT_RESOURCE' && (
-            <div className="grid grid-cols-2 gap-8 mb-8">
-              <label className="block">
-                <span className="block mb-4 text-graphite">Resource</span>
+            <div className="grid grid-cols-2 gap-8">
+              <div>
+                <label className="block mb-4 font-mono text-[12px] text-muted" htmlFor="preempt-resource">
+                  Resource
+                </label>
                 <select
-                  className="field"
+                  id="preempt-resource"
+                  className="w-full h-40 px-12 bg-white font-mono text-[14px] text-ink border border-line rounded-none outline-none focus:border-navy cursor-pointer"
                   value={resourceId}
                   aria-label="Resource to preempt"
                   onChange={(e) => setResourceId(e.target.value)}
@@ -116,39 +124,48 @@ export function RecoveryPanel() {
                     </option>
                   ))}
                 </select>
-              </label>
-              <label className="block">
-                <span className="block mb-4 text-graphite">Count</span>
+              </div>
+              <div>
+                <label className="block mb-4 font-mono text-[12px] text-muted" htmlFor="preempt-count">
+                  Count
+                </label>
                 <input
-                  className="field"
+                  id="preempt-count"
+                  className="w-full h-40 px-12 bg-white font-mono text-[14px] text-ink border border-line rounded-none outline-none focus:border-navy text-center"
                   type="number"
                   min={1}
                   value={count}
                   aria-label="Preemption count"
                   onChange={(e) => setCount(e.target.value)}
                 />
-              </label>
+              </div>
             </div>
           )}
 
-          <button
-            type="button"
-            className="btn btn-ember w-full"
+          <Button
+            variant="secondary"
+            className="w-full"
             onClick={run}
             disabled={!canRecover}
             data-testid="run-recovery"
           >
             Apply recovery
-          </button>
+          </Button>
         </>
       )}
 
       {recoveryResult && (
-        <div className="panel p-16 mt-16" data-testid="recovery-result">
-          <Chip tone={recoveryResult.resolved ? 'inverse' : 'amber'}>
+        <div className="border border-line bg-white p-12" data-testid="recovery-result">
+          <span
+            className={`inline-flex items-center px-8 py-4 border font-mono text-[12px] ${
+              recoveryResult.resolved
+                ? 'border-success/30 bg-success-tint text-success'
+                : 'border-warning/30 bg-warning-tint text-warning'
+            }`}
+          >
             {recoveryResult.resolved ? '✓ Deadlock resolved' : '… Deadlock persists'}
-          </Chip>
-          <p className="text-body-sm text-charcoal mt-8">
+          </span>
+          <p className="font-mono text-[12px] text-muted mt-8">
             Re-detection found{' '}
             {recoveryResult.postDetection.hasDeadlock
               ? `remaining deadlocked processes: ${recoveryResult.postDetection.deadlockedProcessIds.join(', ')}`

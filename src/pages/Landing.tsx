@@ -1,115 +1,223 @@
-import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
+import { PRESETS } from '../scenarios/presets';
+import { detectDeadlock } from '../engine/detect';
 
 const STEPS = [
   {
-    n: '01',
+    num: '01',
     title: 'Build a scenario',
-    body: 'Add processes and resources, or load a textbook example. Draw request (P→R) and assignment (R→P) edges, or edit the matrices directly.',
+    description:
+      'Add processes and resources, or load a textbook example. Draw request (P→R) and assignment (R→P) edges, or edit the matrices directly.',
   },
   {
-    n: '02',
+    num: '02',
     title: 'Run an algorithm',
-    body: "Detect cycles with the Wait-For Graph or the multi-instance matrix algorithm, check safety with Banker's algorithm, or enable prevention policies.",
+    description:
+      "Detect cycles with the Wait-For Graph or the multi-instance matrix algorithm, check safety with Banker's algorithm, or enable prevention policies.",
   },
   {
-    n: '03',
+    num: '03',
     title: 'Watch and recover',
-    body: 'Step through every decision in plain English, see exactly which resources move, then terminate or preempt to break the deadlock and confirm it is resolved.',
-  },
-];
-
-const CAPABILITIES = [
-  {
-    title: 'Detection',
-    body: 'Single-instance DFS cycle detection on the Wait-For Graph, and the multi-instance allocation/request matrix algorithm, with the exact deadlocked set.',
-  },
-  {
-    title: 'Avoidance',
-    body: "Banker's safety algorithm and the resource-request algorithm: granted, denied (unsafe), must wait, or error — each with the precise reason.",
-  },
-  {
-    title: 'Prevention',
-    body: 'Break hold-and-wait, no-preemption, or circular wait. Every rejected request names the policy and the Coffman condition it protects.',
-  },
-  {
-    title: 'Recovery',
-    body: 'Terminate all, terminate a victim, or preempt resources — then re-run detection automatically to prove the deadlock is gone.',
+    description:
+      'Step through every decision in plain English, see exactly which resources move, then terminate or preempt to break the deadlock and confirm it is resolved.',
   },
 ];
 
 export function Landing() {
+  // Engine detection result for classic deadlock preset - computed from engine, never hardcoded
+  const classicPreset = PRESETS['classic-deadlock'];
+  const detectionResult = useMemo(() => {
+    if (!classicPreset?.state) return null;
+    return detectDeadlock(classicPreset.state).result;
+  }, [classicPreset]);
+
+  const chipText = detectionResult?.hasDeadlock ? 'Deadlock detected' : 'No deadlock';
+
   return (
-    <>
-      <div className="bg-obsidian text-off-white" data-testid="announcement">
-        <div className="max-w-page mx-auto flex flex-wrap items-center gap-8 px-16 py-8 text-body-sm">
-          <span className="chip chip-amber">T1–T8</span>
-          <span>
-            Every algorithm is verified against the textbook reference cases — detection, avoidance, prevention, and
-            recovery.
-          </span>
-        </div>
-      </div>
+    <div className="w-full bg-white flex flex-col min-h-0 select-none">
+      {/* Hero Section: fills exactly first screen (min-height: calc(100dvh - var(--nav-h))), vertically centered */}
+      <section
+        className="w-full bg-tint-bg min-h-[calc(100dvh-var(--nav-h))] flex items-center px-[var(--page-pad-x)] max-md:px-16 py-[32px]"
+        data-testid="landing-hero"
+      >
+        <div className="max-w-[1440px] w-full mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-[clamp(32px,5vw,96px)]">
+          {/* Left Hero Content: h1 (2 lines at >=1024px) + mono paragraph (max 480px) */}
+          <div className="w-full">
+            <h1
+              className="font-poppins text-ink font-semibold text-[clamp(32px,3.4vw,48px)] leading-[1.15]"
+              style={{ textWrap: 'balance' }}
+            >
+              See deadlocks happen.
+              <br />
+              Then understand them.
+            </h1>
+            <p className="mt-[24px] font-mono text-[16px] leading-[1.8] text-muted max-w-[480px]">
+              Simulate processes and resources, then watch detection, avoidance, prevention and recovery run one step at a time.
+            </p>
+          </div>
 
-      <div className="max-w-page mx-auto px-16 py-56 space-y-56">
-      <section>
-        <div className="accent-bar mb-16">
-          <h1 className="text-heading font-semibold text-ink-black leading-tight">
-            See deadlocks happen.
-            <br />
-            Then understand them.
-          </h1>
-        </div>
-        <p className="text-subheading text-charcoal max-w-[62ch] mb-24">
-          DeadlockLab simulates processes and resources, then runs real detection, avoidance, prevention, and recovery
-          algorithms — step by step, in plain English.
-        </p>
-        <div className="flex flex-wrap gap-8">
-          <Link to="/lab" className="btn btn-ember no-underline">
-            Open the Lab
-          </Link>
-          <Link to="/learn" className="btn btn-ghost no-underline">
-            Learn the theory
-          </Link>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="section-heading text-heading-sm mb-24">How it works</h2>
-        <ol className="grid gap-24 sm:grid-cols-3">
-          {STEPS.map((s) => (
-            <li key={s.n} className="panel p-24">
-              <span className="chip chip-ember font-semibold">{s.n}</span>
-              <h3 className="font-semibold text-ink-black mt-8 mb-8">{s.title}</h3>
-              <p className="text-body-sm text-charcoal">{s.body}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section>
-        <h2 className="section-heading text-heading-sm mb-24">What you can run</h2>
-        <div className="grid gap-24 sm:grid-cols-2">
-          {CAPABILITIES.map((c) => (
-            <div key={c.title} className="panel p-24">
-              <h3 className="font-semibold text-ink-black mb-8">{c.title}</h3>
-              <p className="text-body-sm text-charcoal">{c.body}</p>
+          {/* Right Hero Figure Card: white, 1px border, shadow none */}
+          <div
+            className="w-full max-w-[560px] bg-white border border-line shadow-none rounded-none justify-self-center lg:justify-self-end"
+            data-testid="hero-figure-card"
+          >
+            {/* Header: clamp(44px, 6vh, 56px) + danger chip */}
+            <div
+              className="px-[24px] border-b border-line flex items-center justify-between"
+              style={{ height: 'clamp(44px, 6vh, 56px)' }}
+            >
+              <span className="font-mono text-[14px] text-ink font-medium">
+                Classic 2-process deadlock
+              </span>
+              <span
+                className="inline-flex items-center px-[8px] py-[2px] border border-danger/30 bg-danger-tint text-danger font-mono text-[12px] font-medium"
+                data-testid="hero-status-chip"
+              >
+                {chipText}
+              </span>
             </div>
-          ))}
+
+            {/* LIVE engine-rendered graph */}
+            <div
+              className="flex items-center justify-center p-[32px] md:p-[48px]"
+            >
+              <svg
+                viewBox="0 0 380 200"
+                className="w-full h-auto max-w-[360px]"
+                aria-label="Classic 2-process deadlock graph"
+              >
+                <defs>
+                  <marker
+                    id="hero-arrow-solid"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0B1220" />
+                  </marker>
+                  <marker
+                    id="hero-arrow-danger"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#B42318" />
+                  </marker>
+                </defs>
+
+                {/* Assignment R1 -> P1 (solid) */}
+                <line
+                  x1="270"
+                  y1="50"
+                  x2="110"
+                  y2="50"
+                  stroke="#0B1220"
+                  strokeWidth="1.5"
+                  markerEnd="url(#hero-arrow-solid)"
+                />
+
+                {/* Assignment R2 -> P2 (solid) */}
+                <line
+                  x1="270"
+                  y1="150"
+                  x2="110"
+                  y2="150"
+                  stroke="#0B1220"
+                  strokeWidth="1.5"
+                  markerEnd="url(#hero-arrow-solid)"
+                />
+
+                {/* Request P1 -> R2 (dashed danger) */}
+                <line
+                  x1="102"
+                  y1="64"
+                  x2="278"
+                  y2="138"
+                  stroke="#B42318"
+                  strokeWidth="1.5"
+                  strokeDasharray="5 4"
+                  markerEnd="url(#hero-arrow-danger)"
+                />
+
+                {/* Request P2 -> R1 (dashed danger) */}
+                <line
+                  x1="102"
+                  y1="136"
+                  x2="278"
+                  y2="62"
+                  stroke="#B42318"
+                  strokeWidth="1.5"
+                  strokeDasharray="5 4"
+                  markerEnd="url(#hero-arrow-danger)"
+                />
+
+                {/* Processes (circles on left) */}
+                <g transform="translate(80, 50)">
+                  <circle cx="0" cy="0" r="24" fill="#FFFFFF" stroke="#0B1220" strokeWidth="1.5" />
+                  <text textAnchor="middle" dy="4" className="font-mono text-[13px] font-semibold" fill="#0B1220">
+                    P1
+                  </text>
+                </g>
+                <g transform="translate(80, 150)">
+                  <circle cx="0" cy="0" r="24" fill="#FFFFFF" stroke="#0B1220" strokeWidth="1.5" />
+                  <text textAnchor="middle" dy="4" className="font-mono text-[13px] font-semibold" fill="#0B1220">
+                    P2
+                  </text>
+                </g>
+
+                {/* Resources (rectangles on right) */}
+                <g transform="translate(300, 50)">
+                  <rect x="-32" y="-18" width="64" height="36" fill="#FFFFFF" stroke="#0B1220" strokeWidth="1.5" />
+                  <text textAnchor="middle" dy="4" className="font-mono text-[13px]" fill="#0B1220">
+                    R1
+                  </text>
+                </g>
+                <g transform="translate(300, 150)">
+                  <rect x="-32" y="-18" width="64" height="36" fill="#FFFFFF" stroke="#0B1220" strokeWidth="1.5" />
+                  <text textAnchor="middle" dy="4" className="font-mono text-[13px]" fill="#0B1220">
+                    R2
+                  </text>
+                </g>
+              </svg>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="panel p-24">
-        <h2 className="section-heading text-heading-sm mb-8">Built for correctness</h2>
-        <p className="text-charcoal mb-16 max-w-[62ch]">
-          The algorithm engine is pure TypeScript with no UI dependencies. Every scenario, preset, and step trace is
-          generated from the real engine — nothing is hard-coded — and the whole thing is covered by tests, including
-          the Silberschatz textbook reference cases.
-        </p>
-        <Link to="/lab" className="btn btn-ember no-underline">
-          Start with the classic deadlock
-        </Link>
+      {/* How it works Section: starts directly below hero, section padding clamp(64px, 10vh, 96px) vertical, 28px heading, 40px gap */}
+      <section className="w-full bg-white py-[clamp(64px,10vh,96px)] px-[var(--page-pad-x)] max-md:px-16">
+        <div className="max-w-[1440px] mx-auto">
+          <h2 className="font-poppins text-[28px] font-semibold leading-[1.3] text-ink mb-[40px]">
+            How it works
+          </h2>
+
+          <div
+            className="grid grid-cols-1 lg:grid-cols-3 gap-[40px]"
+            data-testid="how-it-works-columns"
+          >
+            {STEPS.map((step) => (
+              <div key={step.num} className="border-t-2 border-ink pt-[24px]">
+                <span className="font-mono text-[14px] text-navy font-semibold block">
+                  {step.num}
+                </span>
+                <h3 className="font-poppins text-[20px] text-ink font-semibold mt-[8px] mb-[12px]">
+                  {step.title}
+                </h3>
+                <p className="font-mono text-[15px] leading-[1.8] text-muted">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
-      </div>
-    </>
+    </div>
   );
 }
+

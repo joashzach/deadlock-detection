@@ -204,6 +204,37 @@ function formatEngineError(err: unknown): string {
   return (err as Error).message;
 }
 
+function scenariosEqual(a: SystemState, b: SystemState): boolean {
+  if (a.processes.length !== b.processes.length || a.resources.length !== b.resources.length || a.edges.length !== b.edges.length) {
+    return false;
+  }
+  const aP = a.processes.map((p) => p.id).sort().join(';');
+  const bP = b.processes.map((p) => p.id).sort().join(';');
+  if (aP !== bP) return false;
+
+  const aR = a.resources.map((r) => `${r.id}:${r.totalInstances}`).sort().join(';');
+  const bR = b.resources.map((r) => `${r.id}:${r.totalInstances}`).sort().join(';');
+  if (aR !== bR) return false;
+
+  const aE = a.edges.map((e) => `${e.type}:${e.from}:${e.to}:${e.count}`).sort().join(';');
+  const bE = b.edges.map((e) => `${e.type}:${e.from}:${e.to}:${e.count}`).sort().join(';');
+  if (aE !== bE) return false;
+
+  return true;
+}
+
+function identifyScenario(scenario: SystemState, preferredId?: string): { id: string; name: string } {
+  if (preferredId && PRESETS[preferredId] && scenariosEqual(PRESETS[preferredId]!.state, scenario)) {
+    return { id: preferredId, name: PRESETS[preferredId]!.name };
+  }
+  for (const [id, preset] of Object.entries(PRESETS)) {
+    if (scenariosEqual(preset.state, scenario)) {
+      return { id, name: preset.name };
+    }
+  }
+  return { id: 'custom', name: 'Custom' };
+}
+
 export const useLabStore = create<LabState>((set, get) => {
   /** Validates, records history, and commits a new scenario. Clears the active trace. */
   const commit = (next: SystemState): ActionResult => {
@@ -212,8 +243,11 @@ export const useLabStore = create<LabState>((set, get) => {
     } catch (err) {
       return { ok: false, error: formatEngineError(err) };
     }
+    const ident = identifyScenario(next);
     set((state) => ({
       scenario: next,
+      scenarioId: ident.id,
+      scenarioName: ident.name,
       positions: ensurePositions(next, state.positions),
       scripts: reconcileScripts(state.scripts, next),
       past: [...state.past, state.scenario],
@@ -933,9 +967,12 @@ export const useLabStore = create<LabState>((set, get) => {
       const { past, scenario, positions } = get();
       if (past.length === 0) return;
       const previous = past[past.length - 1]!;
+      const ident = identifyScenario(previous);
       simulatorEngines = { baseline: null, policied: null };
       set({
         scenario: previous,
+        scenarioId: ident.id,
+        scenarioName: ident.name,
         past: past.slice(0, -1),
         future: [scenario, ...get().future],
         positions: ensurePositions(previous, positions),
@@ -953,9 +990,12 @@ export const useLabStore = create<LabState>((set, get) => {
       const { future, scenario, past, positions } = get();
       if (future.length === 0) return;
       const next = future[0]!;
+      const ident = identifyScenario(next);
       simulatorEngines = { baseline: null, policied: null };
       set({
         scenario: next,
+        scenarioId: ident.id,
+        scenarioName: ident.name,
         future: future.slice(1),
         past: [...past, scenario],
         positions: ensurePositions(next, positions),

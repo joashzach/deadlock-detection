@@ -44,7 +44,7 @@ export function MatrixEditor() {
 
   if (scenario.processes.length === 0 || scenario.resources.length === 0) {
     return (
-      <div className="p-16 text-body-sm text-graphite">
+      <div className="p-16 text-body-sm text-muted font-mono">
         Matrices appear once the scenario has at least one process and one resource.
       </div>
     );
@@ -54,15 +54,15 @@ export function MatrixEditor() {
     <div className="p-16 space-y-24 text-body-sm">
       {EDITABLE.map((name) => (
         <section key={name}>
-          <h3 className="font-semibold text-ink-black mb-4">{LABELS[name].title}</h3>
-          <p className="text-graphite mb-8">{LABELS[name].hint}</p>
+          <h3 className="font-poppins text-panel font-semibold text-ink mb-4">{LABELS[name].title}</h3>
+          <p className="font-mono text-small text-muted mb-8">{LABELS[name].hint}</p>
           <div className="overflow-x-auto">
             <table className="border-collapse font-mono text-body-sm">
               <thead>
                 <tr>
-                  <th className="border border-fog px-8 py-4 text-left text-graphite"> </th>
+                  <th className="border border-line px-8 py-4 text-left text-muted"> </th>
                   {rIds.map((r) => (
-                    <th key={r} className="border border-fog px-8 py-4 text-charcoal">
+                    <th key={r} className="border border-line px-8 py-4 text-ink font-semibold">
                       {r}
                     </th>
                   ))}
@@ -71,19 +71,19 @@ export function MatrixEditor() {
               <tbody>
                 {pIds.map((p, i) => (
                   <tr key={p}>
-                    <th className="border border-fog px-8 py-4 text-left text-charcoal">{p}</th>
+                    <th className="border border-line px-8 py-4 text-left text-ink font-semibold">{p}</th>
                     {rIds.map((_, j) => {
                       const grid = matrices[name] as number[][];
                       const value = grid[i]?.[j] ?? 0;
                       const isHot = highlighted.has(`${name}:${i}:${j}`);
                       return (
-                        <td key={j} className="border border-fog p-0">
+                        <td key={j} className="border border-line p-0">
                           <input
                             type="number"
                             min={0}
                             className={clsx(
-                              'w-[52px] px-6 py-4 text-center font-mono bg-transparent border-0',
-                              isHot && 'bg-obsidian text-off-white'
+                              'w-full min-w-[52px] h-9 px-2 py-1 text-center font-mono text-ink bg-transparent border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:outline-none focus:bg-tint-bg focus:text-ink',
+                              isHot && '!bg-navy !text-white'
                             )}
                             value={value}
                             aria-label={`${LABELS[name].title} ${p} ${rIds[j]}`}
@@ -106,14 +106,14 @@ export function MatrixEditor() {
       ))}
 
       <section>
-        <h3 className="font-semibold text-ink-black mb-4">{LABELS.available.title}</h3>
-        <p className="text-graphite mb-8">{LABELS.available.hint}</p>
+        <h3 className="font-poppins text-panel font-semibold text-ink mb-4">{LABELS.available.title}</h3>
+        <p className="font-mono text-small text-muted mb-8">{LABELS.available.hint}</p>
         <div className="overflow-x-auto">
           <table className="border-collapse font-mono text-body-sm">
             <thead>
               <tr>
                 {rIds.map((r) => (
-                  <th key={r} className="border border-fog px-8 py-4 text-charcoal">
+                  <th key={r} className="border border-line px-8 py-4 text-ink font-semibold">
                     {r}
                   </th>
                 ))}
@@ -122,7 +122,7 @@ export function MatrixEditor() {
             <tbody>
               <tr>
                 {rIds.map((_, j) => (
-                  <td key={j} className="border border-fog px-8 py-4 text-center text-graphite">
+                  <td key={j} className="border border-line px-8 py-4 text-center font-mono text-ink">
                     {matrices.available[j] ?? 0}
                   </td>
                 ))}

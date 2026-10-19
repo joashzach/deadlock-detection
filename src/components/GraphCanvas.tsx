@@ -6,9 +6,9 @@ import { computeCycleEdgeIds } from '../lib/cycleEdges';
 import { StateMarker } from './ui/Primitives';
 
 const PROCESS_RADIUS = 30;
-const RESOURCE_HALF_W = 52;
-const RESOURCE_HALF_H = 34;
-const RESOURCE_RADIUS = 54; // approximate radius for edge trimming
+const RESOURCE_HALF_W = 54;
+const RESOURCE_HALF_H = 38;
+const RESOURCE_RADIUS = 58; // approximate radius for edge trimming
 
 interface Viewport {
   x: number;
@@ -49,6 +49,7 @@ export function GraphCanvas() {
 
   const svgRef = useRef<SVGSVGElement>(null);
   const [view, setView] = useState<Viewport>({ x: 0, y: 0, k: 1 });
+  const [legendOpen, setLegendOpen] = useState(false);
   const dragRef = useRef<DragState>(null);
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ dist: number; k: number; cx: number; cy: number } | null>(null);
@@ -68,16 +69,34 @@ export function GraphCanvas() {
     return map;
   }, [scenario]);
 
+  const cycleEdgeIds = useMemo(() => computeCycleEdgeIds(scenario, detection), [scenario, detection]);
+
+  const cycleResourceIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const edge of scenario.edges) {
+      if (cycleEdgeIds.has(edge.id)) {
+        if (edge.type === 'assignment') {
+          set.add(edge.from);
+        } else if (edge.type === 'request') {
+          set.add(edge.to);
+        }
+      }
+    }
+    return set;
+  }, [scenario.edges, cycleEdgeIds]);
+
   const dangerNodes = useMemo(() => {
     const set = new Set<string>();
     if (detection?.hasDeadlock) {
       for (const id of detection.deadlockedProcessIds) set.add(id);
+      for (const id of cycleResourceIds) set.add(id);
     }
     if (currentStep?.highlight?.type === 'danger') {
       for (const id of currentStep.highlight.nodeIds ?? []) set.add(id);
+      for (const id of cycleResourceIds) set.add(id);
     }
     return set;
-  }, [detection, currentStep]);
+  }, [detection, currentStep, cycleResourceIds]);
 
   const warningNodes = useMemo(() => {
     const set = new Set<string>();
@@ -108,8 +127,6 @@ export function GraphCanvas() {
     return set;
   }, [currentStep]);
 
-  const cycleEdgeIds = useMemo(() => computeCycleEdgeIds(scenario, detection), [scenario, detection]);
-
   const fitToScreen = useCallback(() => {
     const svg = svgRef.current;
     if (!svg) return;
@@ -135,23 +152,46 @@ export function GraphCanvas() {
     const pad = 24;
     const w = maxX - minX + pad * 2;
     const h = maxY - minY + pad * 2;
-    const k = Math.min(rect.width / w, rect.height / h, 1.6);
+    const safeAreaBottom = 56;
+    const availableHeight = Math.max(100, rect.height - safeAreaBottom);
+    const k = Math.min(rect.width / w, availableHeight / h, 1.6);
     const cx = (minX + maxX) / 2;
     const cy = (minY + maxY) / 2;
-    setView({ x: rect.width / 2 - cx * k, y: rect.height / 2 - cy * k, k });
+    setView({
+      x: rect.width / 2 - cx * k,
+      y: (rect.height - safeAreaBottom) / 2 - cy * k,
+      k,
+    });
   }, [positions, scenario]);
 
-  // Fit once when the canvas first gains a size.
-  const didFitRef = useRef(false);
+  // Auto-fit on load and preset/scenario change
   useEffect(() => {
-    if (didFitRef.current) return;
+    fitToScreen();
+  }, [fitToScreen, scenario]);
+
+  // Auto-fit on canvas resize
+  useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) {
-      didFitRef.current = true;
-      fitToScreen();
+    let observer: ResizeObserver | null = null;
+    let timeoutId: number | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(() => {
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(() => {
+          fitToScreen();
+        }, 150);
+      });
+      observer.observe(svg);
     }
+    window.addEventListener('resize', fitToScreen);
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (observer) {
+        observer.disconnect();
+      }
+      window.removeEventListener('resize', fitToScreen);
+    };
   }, [fitToScreen]);
 
   // Wheel zoom must be a non-passive listener so preventDefault works (React's onWheel is passive).
@@ -318,16 +358,21 @@ export function GraphCanvas() {
                   : 'url(#arrow-solid)';
             const t = trim(from, to, nodeRadius(edge.from), nodeRadius(edge.to));
             return (
-              <g key={edge.id} className={clsx(isDanger && 'deadlock-pulse')}>
+              <g
+                key={edge.id}
+                className={clsx(isDanger && 'deadlock-pulse')}
+                data-testid={isDanger ? 'cycle-edge' : 'graph-edge'}
+              >
                 <line
                   x1={t.x1}
                   y1={t.y1}
                   x2={t.x2}
                   y2={t.y2}
                   stroke={stroke}
-                  strokeWidth={isDanger || isHighlighted ? 3 : 1.5}
+                  strokeWidth={isDanger || isHighlighted ? 3.5 : 1.5}
                   strokeDasharray={isRequest ? '6 5' : undefined}
                   markerEnd={marker}
+                  data-testid={isDanger ? 'cycle-edge-line' : undefined}
                 />
                 {edge.count > 1 && (
                   <text
@@ -357,9 +402,10 @@ export function GraphCanvas() {
                 key={resource.id}
                 role="button"
                 tabIndex={0}
-                aria-label={`Resource ${resource.id}: ${allocated} of ${resource.totalInstances} instances allocated`}
+                aria-label={`Resource ${resource.id}: ${allocated} of ${resource.totalInstances} instances allocated${isDanger ? ', in deadlock cycle' : ''}`}
                 transform={`translate(${pos.x},${pos.y})`}
-                className="cursor-grab"
+                className={clsx('cursor-grab', isDanger && 'deadlock-pulse')}
+                data-testid={isDanger ? 'cycle-resource-node' : 'resource-node'}
                 onPointerDown={(e) => onPointerDownNode(e, resource.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -373,31 +419,56 @@ export function GraphCanvas() {
                   y={-RESOURCE_HALF_H}
                   width={RESOURCE_HALF_W * 2}
                   height={RESOURCE_HALF_H * 2}
-                  fill="var(--surface-card-cell)"
+                  fill={isDanger ? 'var(--color-obsidian)' : 'var(--surface-card-cell)'}
                   stroke={isDanger ? 'var(--color-ember)' : isSelected ? 'var(--color-ink-black)' : 'var(--color-charcoal)'}
                   strokeWidth={isSelected || isDanger ? 3 : 2}
                   rx={0}
                 />
-                <text textAnchor="middle" dy={-2} className="font-mono" fontSize={16} fontWeight={600} fill="var(--color-ink-black)">
+                <text
+                  textAnchor="middle"
+                  dy={-12}
+                  className="font-mono"
+                  fontSize={16}
+                  fontWeight={600}
+                  fill={isDanger ? 'var(--color-off-white)' : 'var(--color-ink-black)'}
+                >
                   {resource.id}
                 </text>
-                <text textAnchor="middle" dy={16} className="font-mono" fontSize={11} fill="var(--color-graphite)">
+                <text
+                  textAnchor="middle"
+                  dy={4}
+                  className="font-mono"
+                  fontSize={12}
+                  fontWeight={500}
+                  fill={isDanger ? 'var(--color-fog)' : 'var(--color-graphite)'}
+                >
                   {allocated}/{resource.totalInstances}
                 </text>
-                {/* Instance dots: filled = allocated */}
-                <g transform={`translate(${-((resource.totalInstances - 1) * 7) / 2},${RESOURCE_HALF_H + 12})`}>
+                {/* Instance dots inside the card: filled = allocated */}
+                <g transform={`translate(${-((resource.totalInstances - 1) * 10) / 2}, 22)`}>
                   {Array.from({ length: resource.totalInstances }, (_, i) => (
                     <circle
                       key={i}
-                      cx={i * 7}
+                      cx={i * 10}
                       cy={0}
-                      r={3}
-                      fill={i < allocated ? 'var(--color-obsidian)' : 'var(--surface-canvas)'}
-                      stroke="var(--color-charcoal)"
-                      strokeWidth={1}
+                      r={3.5}
+                      fill={i < allocated ? (isDanger ? 'var(--color-ember)' : 'var(--color-obsidian)') : 'var(--surface-canvas)'}
+                      stroke={isDanger ? 'var(--color-ember)' : 'var(--color-charcoal)'}
+                      strokeWidth={1.5}
                     />
                   ))}
                 </g>
+                {isDanger && (
+                  <text
+                    textAnchor="middle"
+                    dy={-RESOURCE_HALF_H - 8}
+                    className="font-mono font-medium"
+                    fontSize={12}
+                    fill="var(--color-ember)"
+                  >
+                    ⚠ in deadlock
+                  </text>
+                )}
               </g>
             );
           })}
@@ -428,6 +499,7 @@ export function GraphCanvas() {
                 aria-label={`Process ${process.id}${isDanger ? ', deadlocked' : ''}`}
                 transform={`translate(${pos.x},${pos.y})`}
                 className={clsx('cursor-grab', isDanger && 'deadlock-pulse')}
+                data-testid={isDanger ? 'cycle-process-node' : 'process-node'}
                 onPointerDown={(e) => onPointerDownNode(e, process.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -455,7 +527,13 @@ export function GraphCanvas() {
                   {process.id}
                 </text>
                 {isDanger && (
-                  <text textAnchor="middle" dy={-PROCESS_RADIUS - 8} className="font-mono" fontSize={12} fill="var(--color-ember)">
+                  <text
+                    textAnchor="middle"
+                    dy={-PROCESS_RADIUS - 8}
+                    className="font-mono font-medium"
+                    fontSize={12}
+                    fill="var(--color-ember)"
+                  >
                     ⚠ deadlocked
                   </text>
                 )}
@@ -465,14 +543,22 @@ export function GraphCanvas() {
         </g>
       </svg>
 
-      {/* Canvas controls */}
-      <div className="absolute top-16 right-16 flex flex-col gap-8">
-        <button type="button" className="btn btn-outline" onClick={fitToScreen} aria-label="Fit graph to screen">
+      {/* Canvas controls: ONE compact vertical group at bottom-right, inset 16px */}
+      <div
+        data-testid="zoom-controls"
+        className="absolute bottom-16 right-16 flex flex-col z-10 border border-line bg-white shadow-none"
+      >
+        <button
+          type="button"
+          className="h-[var(--ctrl-h)] w-[var(--ctrl-h)] flex items-center justify-center font-mono text-[13px] text-ink bg-white hover:bg-tint-bg transition-colors border-b border-line cursor-pointer select-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
+          onClick={fitToScreen}
+          aria-label="Fit graph to screen"
+        >
           Fit
         </button>
         <button
           type="button"
-          className="btn btn-outline"
+          className="h-[var(--ctrl-h)] w-[var(--ctrl-h)] flex items-center justify-center font-mono text-[14px] text-ink bg-white hover:bg-tint-bg transition-colors border-b border-line cursor-pointer select-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
           onClick={() => setView((v) => ({ ...v, k: Math.min(2.5, v.k * 1.2) }))}
           aria-label="Zoom in"
         >
@@ -480,7 +566,7 @@ export function GraphCanvas() {
         </button>
         <button
           type="button"
-          className="btn btn-outline"
+          className="h-[var(--ctrl-h)] w-[var(--ctrl-h)] flex items-center justify-center font-mono text-[14px] text-ink bg-white hover:bg-tint-bg transition-colors cursor-pointer select-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
           onClick={() => setView((v) => ({ ...v, k: Math.max(0.3, v.k / 1.2) }))}
           aria-label="Zoom out"
         >
@@ -488,32 +574,58 @@ export function GraphCanvas() {
         </button>
       </div>
 
-      {/* Legend */}
-      <div className="absolute bottom-16 left-16 panel p-16 max-w-[280px] text-body-sm">
-        <p className="font-semibold text-ink-black mb-8">Legend</p>
-        <ul className="space-y-4 text-charcoal">
-          <li className="flex items-center gap-8">
-            <svg width="34" height="10" aria-hidden="true">
-              <line x1="0" y1="5" x2="34" y2="5" stroke="var(--color-graphite)" strokeWidth="1.5" strokeDasharray="6 5" />
-            </svg>
-            Request edge (dashed)
-          </li>
-          <li className="flex items-center gap-8">
-            <svg width="34" height="10" aria-hidden="true">
-              <line x1="0" y1="5" x2="34" y2="5" stroke="var(--color-obsidian)" strokeWidth="2" />
-            </svg>
-            Assignment edge (solid)
-          </li>
-          <li className="flex items-center gap-8">
-            <StateMarker tone="danger" glyph="⚠" label="Deadlock" />
-          </li>
-          <li className="flex items-center gap-8">
-            <StateMarker tone="warning" glyph="…" label="Waiting" />
-          </li>
-          <li className="flex items-center gap-8">
-            <StateMarker tone="success" glyph="✓" label="Safe / free" />
-          </li>
-        </ul>
+      {/* Collapsible Legend at bottom-left: height var(--ctrl-h), auto width, inset 16px */}
+      <div data-testid="legend-control" className="absolute bottom-16 left-16 z-10 text-body-sm">
+        {!legendOpen ? (
+          <button
+            type="button"
+            className="h-[var(--ctrl-h)] px-12 border border-line bg-white text-ink font-mono text-[13px] flex items-center gap-6 cursor-pointer select-none hover:bg-tint-bg transition-colors outline-none focus-visible:outline-2 focus-visible:outline-navy"
+            onClick={() => setLegendOpen(true)}
+            aria-expanded={false}
+            aria-label="Open graph legend"
+          >
+            <span className="font-medium">Legend</span>
+            <span aria-hidden="true">▴</span>
+          </button>
+        ) : (
+          <div className="border border-line p-16 w-[280px] sm:w-[320px] bg-white shadow-none">
+            <div className="flex items-center justify-between gap-16 mb-8 border-b border-line pb-4">
+              <p className="font-poppins font-semibold text-ink text-[14px]">Legend</p>
+              <button
+                type="button"
+                className="font-mono text-muted hover:text-ink cursor-pointer p-2 text-[14px]"
+                onClick={() => setLegendOpen(false)}
+                aria-expanded={true}
+                aria-label="Close graph legend"
+              >
+                ✕
+              </button>
+            </div>
+            <ul className="space-y-6 text-muted font-mono text-[12px]">
+              <li className="flex items-center gap-8">
+                <svg width="34" height="10" aria-hidden="true" className="shrink-0">
+                  <line x1="0" y1="5" x2="34" y2="5" stroke="#566079" strokeWidth="1.5" strokeDasharray="6 5" />
+                </svg>
+                <span className="whitespace-normal">Request edge (dashed)</span>
+              </li>
+              <li className="flex items-center gap-8">
+                <svg width="34" height="10" aria-hidden="true" className="shrink-0">
+                  <line x1="0" y1="5" x2="34" y2="5" stroke="#0B1220" strokeWidth="1.5" />
+                </svg>
+                <span className="whitespace-normal">Assignment edge (solid)</span>
+              </li>
+              <li className="flex items-center gap-8">
+                <StateMarker tone="danger" glyph="⚠" label="Deadlock cycle" />
+              </li>
+              <li className="flex items-center gap-8">
+                <StateMarker tone="warning" glyph="…" label="Waiting" />
+              </li>
+              <li className="flex items-center gap-8">
+                <StateMarker tone="success" glyph="✓" label="Safe / free" />
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Empty state */}

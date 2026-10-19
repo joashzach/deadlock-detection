@@ -20,6 +20,19 @@ export function autoLayout(state: SystemState): Positions {
   const leftX = 170;
   const rightX = CANVAS_WIDTH - 170;
 
+  // Natural order P0..Pn and R0..Rn
+  const pList = [...state.processes.map((p) => p.id)].sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true })
+  );
+  const rList = [...state.resources.map((r) => r.id)].sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true })
+  );
+
+  if (pList.length === 0 && rList.length === 0) return positions;
+
+  const bestP = [...pList];
+  const bestR = [...rList];
+
   const layoutColumn = (count: number): number[] => {
     if (count === 0) return [];
     const top = 70;
@@ -29,14 +42,14 @@ export function autoLayout(state: SystemState): Positions {
     return Array.from({ length: count }, (_, i) => top + step * i);
   };
 
-  const processYs = layoutColumn(state.processes.length);
-  state.processes.forEach((p, i) => {
-    positions[p.id] = { x: leftX, y: processYs[i] ?? CANVAS_HEIGHT / 2 };
+  const processYs = layoutColumn(bestP.length);
+  bestP.forEach((id, i) => {
+    positions[id] = { x: leftX, y: processYs[i] ?? CANVAS_HEIGHT / 2 };
   });
 
-  const resourceYs = layoutColumn(state.resources.length);
-  state.resources.forEach((r, i) => {
-    positions[r.id] = { x: rightX, y: resourceYs[i] ?? CANVAS_HEIGHT / 2 };
+  const resourceYs = layoutColumn(bestR.length);
+  bestR.forEach((id, i) => {
+    positions[id] = { x: rightX, y: resourceYs[i] ?? CANVAS_HEIGHT / 2 };
   });
 
   return positions;

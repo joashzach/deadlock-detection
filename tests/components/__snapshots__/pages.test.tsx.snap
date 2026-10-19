@@ -1,0 +1,66 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Landing page > renders the three How-it-works columns with exact copy 1`] = `
+<div
+  class="mt-[48px] grid grid-cols-1 lg:grid-cols-3 gap-[48px]"
+  data-testid="how-it-works-columns"
+>
+  <div
+    class="border-t-2 border-ink pt-[24px]"
+  >
+    <span
+      class="font-mono text-[14px] text-navy font-medium block"
+    >
+      01
+    </span>
+    <h3
+      class="font-poppins text-h3 text-ink font-semibold mt-8 mb-8"
+    >
+      Build a scenario
+    </h3>
+    <p
+      class="font-mono text-[15px] leading-[1.8] text-muted"
+    >
+      Add processes and resources, or load a textbook example. Draw request (P→R) and assignment (R→P) edges, or edit the matrices directly.
+    </p>
+  </div>
+  <div
+    class="border-t-2 border-ink pt-[24px]"
+  >
+    <span
+      class="font-mono text-[14px] text-navy font-medium block"
+    >
+      02
+    </span>
+    <h3
+      class="font-poppins text-h3 text-ink font-semibold mt-8 mb-8"
+    >
+      Run an algorithm
+    </h3>
+    <p
+      class="font-mono text-[15px] leading-[1.8] text-muted"
+    >
+      Detect cycles with the Wait-For Graph or the multi-instance matrix algorithm, check safety with Banker's algorithm, or enable prevention policies.
+    </p>
+  </div>
+  <div
+    class="border-t-2 border-ink pt-[24px]"
+  >
+    <span
+      class="font-mono text-[14px] text-navy font-medium block"
+    >
+      03
+    </span>
+    <h3
+      class="font-poppins text-h3 text-ink font-semibold mt-8 mb-8"
+    >
+      Watch and recover
+    </h3>
+    <p
+      class="font-mono text-[15px] leading-[1.8] text-muted"
+    >
+      Step through every decision in plain English, see exactly which resources move, then terminate or preempt to break the deadlock and confirm it is resolved.
+    </p>
+  </div>
+</div>
+`;

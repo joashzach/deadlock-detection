@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { Button } from './ui/Button';
 
 interface Props {
   children: ReactNode;
@@ -21,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, info: ErrorInfo): void {
     // eslint-disable-next-line no-console
-    console.error('DeadlockLab crashed:', error, info.componentStack);
+    console.error('DeadLockLab crashed:', error, info.componentStack);
   }
 
   private handleReload = (): void => {
@@ -32,18 +33,18 @@ export class ErrorBoundary extends Component<Props, State> {
   public render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-off-white" role="alert">
-          <div className="panel p-24 max-w-page w-full">
-            <h1 className="section-heading text-heading-sm mb-16">Something went wrong</h1>
-            <p className="text-charcoal mb-16">
-              DeadlockLab hit an unexpected error and stopped to avoid showing incorrect results.
+        <div className="min-h-screen flex items-center justify-center p-24 bg-tint-bg" role="alert">
+          <div className="border border-line bg-white p-24 max-w-[560px] w-full rounded-none shadow-none">
+            <h1 className="font-poppins text-h3 font-semibold text-ink mb-16">Something went wrong</h1>
+            <p className="font-mono text-mono-body text-muted mb-16">
+              DeadLockLab hit an unexpected error and stopped to avoid showing incorrect results.
             </p>
-            <pre className="text-body-sm text-graphite whitespace-pre-wrap border border-fog p-16 mb-24">
+            <pre className="font-mono text-[13px] text-muted whitespace-pre-wrap border border-line p-16 mb-24 bg-tint-bg">
               {this.state.message || 'Unknown error'}
             </pre>
-            <button type="button" className="btn btn-ember" onClick={this.handleReload}>
+            <Button variant="primary" onClick={this.handleReload}>
               Reload the app
-            </button>
+            </Button>
           </div>
         </div>
       );

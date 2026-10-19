@@ -29,11 +29,6 @@ const GROUPS: Array<{ title: string; items: Array<{ keys: string[]; description:
 
 const FOCUSABLE = 'a[href], button:not([disabled]), select:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/**
- * Keyboard-shortcut reference (PRD §5.5). Opens with `?`, closes with `Esc`, the
- * backdrop, or its own button; focus moves into the dialog and is restored on close,
- * and Tab is kept inside while it is open.
- */
 export function ShortcutsDialog() {
   const open = useLabStore((s) => s.shortcutsOpen);
   const setShortcutsOpen = useLabStore((s) => s.setShortcutsOpen);
@@ -77,7 +72,7 @@ export function ShortcutsDialog() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-16"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-16"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) setShortcutsOpen(false);
       }}
@@ -88,14 +83,18 @@ export function ShortcutsDialog() {
         aria-modal="true"
         aria-labelledby="shortcuts-title"
         tabIndex={-1}
-        className="panel w-full max-w-[560px] max-h-[90vh] overflow-y-auto p-24 bg-off-white"
+        className="w-full max-w-[560px] max-h-[90vh] overflow-y-auto p-24 bg-white border border-line rounded-none shadow-none max-md:fixed max-md:bottom-0 max-md:inset-x-0 max-md:max-w-none max-md:border-b-0 outline-none"
         data-testid="shortcuts-dialog"
       >
-        <div className="flex items-start justify-between gap-16 mb-16">
-          <h2 id="shortcuts-title" className="section-heading text-subheading">
+        <div className="flex items-center justify-between pb-16 mb-16 border-b border-line">
+          <h2 id="shortcuts-title" className="font-poppins text-h3 font-semibold text-ink">
             Keyboard shortcuts
           </h2>
-          <button type="button" className="btn btn-ghost" onClick={() => setShortcutsOpen(false)}>
+          <button
+            type="button"
+            className="font-mono text-[14px] text-muted hover:text-ink cursor-pointer p-4 rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
+            onClick={() => setShortcutsOpen(false)}
+          >
             Close
           </button>
         </div>
@@ -103,22 +102,22 @@ export function ShortcutsDialog() {
         <div className="space-y-24">
           {GROUPS.map((group) => (
             <section key={group.title}>
-              <h3 className="font-semibold text-ink-black mb-8">{group.title}</h3>
-              <table className="w-full border-collapse font-mono text-body-sm">
+              <h3 className="font-poppins text-panel font-semibold text-ink mb-8">{group.title}</h3>
+              <table className="w-full border-collapse font-mono text-[13px]">
                 <caption className="sr-only">{group.title} shortcuts</caption>
                 <tbody>
                   {group.items.map((item) => (
-                    <tr key={item.description} className="border-t border-fog">
+                    <tr key={item.description} className="border-t border-line">
                       <th scope="row" className="text-left font-normal py-8 pr-16 align-top w-[180px]">
                         <span className="inline-flex flex-wrap items-center gap-4">
                           {item.keys.map((key) => (
-                            <kbd key={key} className="chip">
+                            <kbd key={key} className="inline-flex items-center px-6 py-2 border border-line bg-tint-bg font-mono text-[12px] text-ink rounded-none">
                               {key}
                             </kbd>
                           ))}
                         </span>
                       </th>
-                      <td className="py-8 text-graphite">{item.description}</td>
+                      <td className="py-8 text-muted">{item.description}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -127,7 +126,7 @@ export function ShortcutsDialog() {
           ))}
         </div>
 
-        <p className="text-body-sm text-graphite mt-16">
+        <p className="font-mono text-[12px] text-muted mt-24">
           Shortcuts are ignored while you are typing in a field, and Space is left to whichever button has focus.
         </p>
       </div>
