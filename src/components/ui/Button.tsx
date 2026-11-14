@@ -3,20 +3,27 @@ import clsx from 'clsx';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost';
-  size?: 'default' | 'compact' | 'icon';
+  size?: 'md' | 'sm' | 'icon' | 'icon-sm' | 'default' | 'compact';
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'secondary', size = 'default', className, children, disabled, ...props }, ref) => {
+  ({ variant = 'secondary', size = 'md', className, children, disabled, ...props }, ref) => {
+    const isSm = size === 'sm' || size === 'compact';
+    const isIconSm = size === 'icon-sm';
+    const isIconMd = size === 'icon';
+
     return (
       <button
         ref={ref}
         disabled={disabled}
         className={clsx(
-          'inline-flex items-center justify-center font-poppins text-button font-medium whitespace-nowrap transition-colors select-none rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy focus-visible:outline-offset-2',
-          size === 'default' && 'h-[var(--ctrl-h)] px-[clamp(12px,1.1vw,16px)]',
-          size === 'compact' && 'h-[var(--ctrl-h)] px-12',
-          size === 'icon' && 'h-[var(--ctrl-h)] w-[var(--ctrl-h)] p-0 shrink-0',
+          'inline-flex items-center justify-center font-poppins text-[14px] leading-none font-medium whitespace-nowrap transition-colors select-none rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy focus-visible:outline-offset-2',
+          // Sizing: md = 40px (padding 16px), sm = 32px (padding 12px)
+          (!isSm && !isIconSm && !isIconMd) && 'h-[40px] px-16',
+          isSm && 'h-[32px] px-12',
+          isIconMd && 'h-[40px] w-[40px] p-0 shrink-0',
+          isIconSm && 'h-[32px] w-[32px] p-0 shrink-0',
+          // Variants
           variant === 'primary' &&
             'bg-navy text-white border border-navy hover:bg-navy-hover hover:border-navy-hover active:bg-navy-hover',
           variant === 'secondary' &&

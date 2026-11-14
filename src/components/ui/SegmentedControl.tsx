@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { motion } from 'framer-motion';
 
 export interface SegmentOption<T extends string> {
   value: T;
@@ -14,6 +15,7 @@ export interface SegmentedControlProps<T extends string> {
   onChange: (value: T) => void;
   ariaLabel?: string;
   className?: string;
+  size?: 'sm' | 'md';
 }
 
 export function SegmentedControl<T extends string>({
@@ -22,12 +24,18 @@ export function SegmentedControl<T extends string>({
   onChange,
   ariaLabel,
   className,
+  size = 'md',
 }: SegmentedControlProps<T>) {
+  const isSm = size === 'sm';
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className={clsx('inline-flex h-[var(--ctrl-h)] border border-line bg-white rounded-none shrink-0', className)}
+      className={clsx(
+        'relative inline-flex border border-line bg-white rounded-none shrink-0 select-none',
+        isSm ? 'h-[34px]' : 'h-[40px]',
+        className
+      )}
     >
       {options.map((option) => {
         const isActive = option.value === value;
@@ -42,13 +50,21 @@ export function SegmentedControl<T extends string>({
             data-testid={option.testId}
             onClick={() => onChange(option.value)}
             className={clsx(
-              'h-full px-24 font-poppins text-[14px] font-medium transition-colors cursor-pointer select-none whitespace-nowrap rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy focus-visible:outline-offset-2',
+              'relative h-full font-poppins whitespace-nowrap cursor-pointer select-none rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy focus-visible:outline-offset-2 transition-colors flex items-center justify-center',
+              isSm ? 'px-8 text-[12px] font-medium' : 'px-16 text-button',
               isActive
-                ? 'bg-navy text-white font-semibold'
-                : 'bg-white text-muted hover:text-ink'
+                ? 'text-white font-medium'
+                : 'text-muted hover:text-ink'
             )}
           >
-            {option.label}
+            {isActive && (
+              <motion.span
+                layoutId="segmented-indicator"
+                className="absolute inset-0 bg-navy z-0"
+                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              />
+            )}
+            <span className="relative z-10">{option.label}</span>
           </button>
         );
       })}

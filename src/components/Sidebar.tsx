@@ -5,10 +5,10 @@ import { PRESETS } from '../scenarios/presets';
 import { generateRandomScenario } from '../lib/random';
 import { serializeScenario, parseScenarioJson } from '../lib/schema';
 import { PreventionPanel } from './PreventionPanel';
-import { BankersPanel } from './BankersPanel';
-import { RecoveryPanel } from './RecoveryPanel';
 import { Button } from './ui/Button';
+import { Select } from './ui/Select';
 import { AccordionRow } from './ui/AccordionRow';
+import { CloseIcon } from './ui/Icons';
 
 type SectionKey = 'processes' | 'resources' | 'scripts' | 'policies' | 'advanced';
 
@@ -22,7 +22,6 @@ export function Sidebar({
   const scenario = useLabStore((s) => s.scenario);
   const scenarioId = useLabStore((s) => s.scenarioId);
   const scenarioName = useLabStore((s) => s.scenarioName);
-  const selectedNodeId = useLabStore((s) => s.selectedNodeId);
   const algorithm = useLabStore((s) => s.algorithm);
   const setAlgorithm = useLabStore((s) => s.setAlgorithm);
   const loadPreset = useLabStore((s) => s.loadPreset);
@@ -96,26 +95,51 @@ export function Sidebar({
     importScenario(result.name ?? 'Imported scenario', result.scenario);
   };
 
+  // Preset Select Options
+  const presetOptions = [
+    ...(scenarioId === 'custom' ? [{ value: 'custom', label: 'Custom' }] : []),
+    ...Object.entries(PRESETS).map(([id, preset]) => ({
+      value: id,
+      label: preset.name,
+    })),
+  ];
+
+  // Algorithm Select Options
+  const algorithmOptions = [
+    { value: 'auto', label: 'Auto' },
+    { value: 'single-instance-wfg', label: 'Wait-for graph' },
+    { value: 'multi-instance-matrix', label: 'Matrix' },
+    { value: 'bankers', label: "Banker's" },
+  ];
+
+  const currentAlgorithmValue =
+    algorithm === 'multi-instance-matrix' && useLabStore.getState().traceKind === 'banker-safety'
+      ? 'bankers'
+      : algorithm;
+
   return (
     <div
       className="h-full flex flex-col bg-white text-ink select-none overflow-hidden"
       data-testid="sidebar-container"
     >
-      {/* Scrollable upper area: anchored to top, overflow-anchor: none */}
+      {/* Scrollable Upper Area: scrollable only when dropdown menus/accordions are expanded */}
       <div
-        className="flex-1 overflow-y-auto font-mono text-[14px]"
-        style={{ padding: '24px', overflowAnchor: 'none' }}
+        className={clsx(
+          'flex-1 font-mono text-[13px] px-16 py-12',
+          openSection !== null ? 'overflow-y-auto' : 'overflow-hidden'
+        )}
+        style={{ overflowAnchor: 'none' }}
         data-testid="sidebar-scrollable"
       >
         {/* SCENARIO label */}
-        <div className="flex items-center justify-between mb-8">
-          <span className="font-poppins text-[12px] font-semibold uppercase tracking-[0.08em] text-muted">
+        <div className="flex items-center justify-between mb-6">
+          <span className="font-poppins text-label uppercase text-muted tracking-wider">
             SCENARIO
           </span>
           {onClose && (
             <button
               type="button"
-              className="lg:hidden h-32 w-32 flex items-center justify-center font-mono text-muted hover:text-ink cursor-pointer text-[14px]"
+              className="lg:hidden h-28 w-28 flex items-center justify-center font-mono text-muted hover:text-ink cursor-pointer text-[13px]"
               onClick={onClose}
               aria-label="Close scenario panel"
             >
@@ -124,40 +148,34 @@ export function Sidebar({
           )}
         </div>
 
-        {/* Preset Select: var(--ctrl-h), left-aligned */}
-        <div className="mb-8">
-          <select
+        {/* Preset Select: compact 32px height, full width */}
+        <div className="mb-10">
+          <Select
             id="preset-select"
-            aria-label="Preset"
-            className="w-full h-[40px] px-[14px] text-left bg-white font-mono text-[13px] text-ink border border-line rounded-none outline-none focus:border-navy cursor-pointer"
+            ariaLabel="Preset"
             value={scenarioId}
-            onChange={(e) => {
-              if (e.target.value && e.target.value !== 'custom') loadPreset(e.target.value);
+            options={presetOptions}
+            sizeVariant="sm"
+            onChange={(val) => {
+              if (val && val !== 'custom') loadPreset(val);
             }}
-          >
-            {scenarioId === 'custom' && <option value="custom">Custom</option>}
-            {Object.entries(PRESETS).map(([id, preset]) => (
-              <option key={id} value={id}>
-                {preset.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
 
-        {/* Row of two equal buttons: Auto-layout and Reset */}
-        <div className="grid grid-cols-2 gap-8 mb-24">
+        {/* Auto-layout | Reset: two equal buttons on ONE line (sm = 32px, gap 8) */}
+        <div className="grid grid-cols-2 gap-8 mb-16">
           <Button
             variant="secondary"
-            size="compact"
-            className="w-full !px-8 whitespace-nowrap text-[13px] h-[40px]"
+            size="sm"
+            className="w-full whitespace-nowrap text-[12px] font-medium h-[32px] px-8"
             onClick={runAutoLayout}
           >
             Auto-layout
           </Button>
           <Button
             variant="secondary"
-            size="compact"
-            className="w-full !px-8 whitespace-nowrap text-[13px] h-[40px]"
+            size="sm"
+            className="w-full whitespace-nowrap text-[12px] font-medium h-[32px] px-8"
             onClick={resetScenario}
           >
             Reset
@@ -165,21 +183,21 @@ export function Sidebar({
         </div>
 
         {/* ALGORITHM label */}
-        <div className="mb-8">
-          <span className="font-poppins text-[12px] font-semibold uppercase tracking-[0.08em] text-muted">
+        <div className="mb-6">
+          <span className="font-poppins text-label uppercase text-muted tracking-wider">
             ALGORITHM
           </span>
         </div>
 
-        {/* Algorithm Select: var(--ctrl-h), left-aligned, options short enough to fit */}
-        <div className="mb-24">
-          <select
+        {/* Algorithm Select: compact 32px height, full width */}
+        <div className="mb-16">
+          <Select
             id="algorithm-select"
-            aria-label="Algorithm"
-            className="w-full h-[40px] px-[14px] text-left bg-white font-mono text-[13px] text-ink border border-line rounded-none outline-none focus:border-navy cursor-pointer"
-            value={algorithm}
-            onChange={(e) => {
-              const val = e.target.value;
+            ariaLabel="Algorithm"
+            value={currentAlgorithmValue}
+            options={algorithmOptions}
+            sizeVariant="sm"
+            onChange={(val) => {
               if (val === 'bankers') {
                 setAlgorithm('multi-instance-matrix');
                 useLabStore.getState().runSafety();
@@ -187,15 +205,10 @@ export function Sidebar({
                 setAlgorithm(val as AlgorithmChoice);
               }
             }}
-          >
-            <option value="auto">Auto</option>
-            <option value="single-instance-wfg">Wait-for graph</option>
-            <option value="multi-instance-matrix">Matrix</option>
-            <option value="bankers">Banker's</option>
-          </select>
+          />
         </div>
 
-        {/* Accordion Rows: height 44px, rotating chevron, only one open at a time */}
+        {/* Accordion Rows: 44px headers, top-anchored, only one open at a time */}
         <div className="border-b border-line">
           {/* 1. Processes */}
           <AccordionRow
@@ -204,47 +217,47 @@ export function Sidebar({
             isOpen={openSection === 'processes'}
             onToggle={() => toggleSection('processes')}
           >
-            <Button
-              variant="secondary"
-              className="w-full h-[40px]"
-              aria-label="Add process"
-              onClick={() => report(addProcess())}
-            >
-              + Add process
-            </Button>
-            <ul className="space-y-8 max-h-[240px] overflow-y-auto pr-4">
-              {scenario.processes.map((p) => (
-                <li key={p.id} className="flex items-center gap-8">
-                  <span
-                    className={clsx(
-                      'w-32 h-32 flex items-center justify-center border font-mono text-[13px] font-medium shrink-0',
-                      selectedNodeId === p.id
-                        ? 'border-navy bg-navy text-white'
-                        : 'border-line bg-tint-bg text-ink'
-                    )}
+            <div className="space-y-8">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full h-[32px] text-[12px] font-medium"
+                aria-label="Add process"
+                onClick={() => report(addProcess())}
+              >
+                + Add process
+              </Button>
+              <ul className="space-y-8 max-h-[240px] overflow-y-auto pr-2">
+                {scenario.processes.map((p) => (
+                  <li
+                    key={p.id}
+                    className="grid grid-cols-[32px_minmax(0,1fr)_32px] gap-6 items-center"
                   >
-                    {p.id}
-                  </span>
-                  <input
-                    className="w-full h-[40px] px-12 bg-white font-mono text-[14px] text-ink border border-line rounded-none outline-none focus:border-navy"
-                    value={p.name}
-                    aria-label={`Rename ${p.id}`}
-                    onChange={(e) => renameProcess(p.id, e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="font-mono text-[13px] text-muted hover:text-danger px-8 py-4 shrink-0 cursor-pointer"
-                    aria-label={`Remove ${p.id}`}
-                    onClick={() => report(removeProcess(p.id))}
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
-              {scenario.processes.length === 0 && (
-                <li className="text-muted text-[13px]">No processes defined.</li>
-              )}
-            </ul>
+                    <span className="w-[32px] h-[32px] border border-line bg-tint-bg font-mono text-[12px] font-medium text-ink flex items-center justify-center shrink-0">
+                      {p.id}
+                    </span>
+                    <input
+                      className="w-full h-[32px] px-8 bg-white font-mono text-[12px] text-ink border border-line rounded-none outline-none focus:border-navy"
+                      value={p.name}
+                      aria-label={`Rename ${p.id}`}
+                      onChange={(e) => renameProcess(p.id, e.target.value)}
+                    />
+                    <Button
+                      variant="secondary"
+                      size="icon-sm"
+                      className="h-[32px] w-[32px] shrink-0"
+                      aria-label={`Remove ${p.id}`}
+                      onClick={() => report(removeProcess(p.id))}
+                    >
+                      <CloseIcon size={16} />
+                    </Button>
+                  </li>
+                ))}
+                {scenario.processes.length === 0 && (
+                  <li className="text-muted text-[12px] py-4">No processes defined.</li>
+                )}
+              </ul>
+            </div>
           </AccordionRow>
 
           {/* 2. Resources */}
@@ -254,58 +267,59 @@ export function Sidebar({
             isOpen={openSection === 'resources'}
             onToggle={() => toggleSection('resources')}
           >
-            <Button
-              variant="secondary"
-              className="w-full h-[40px]"
-              aria-label="Add resource"
-              onClick={() => report(addResource())}
-            >
-              + Add resource
-            </Button>
-            <ul className="space-y-8 max-h-[240px] overflow-y-auto pr-4">
-              {scenario.resources.map((r) => (
-                <li key={r.id} className="flex items-center gap-8">
-                  <span
-                    className={clsx(
-                      'w-32 h-32 flex items-center justify-center border font-mono text-[13px] font-medium shrink-0',
-                      selectedNodeId === r.id
-                        ? 'border-navy bg-navy text-white'
-                        : 'border-line bg-tint-bg text-ink'
-                    )}
+            <div className="space-y-8">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full h-[32px] text-[12px] font-medium"
+                aria-label="Add resource"
+                onClick={() => report(addResource())}
+              >
+                + Add resource
+              </Button>
+              <ul className="space-y-8 max-h-[240px] overflow-y-auto pr-2">
+                {scenario.resources.map((r) => (
+                  <li
+                    key={r.id}
+                    className="grid grid-cols-[32px_minmax(0,1fr)_44px_32px] gap-6 items-center"
                   >
-                    {r.id}
-                  </span>
-                  <input
-                    className="w-full h-[40px] px-12 bg-white font-mono text-[14px] text-ink border border-line rounded-none outline-none focus:border-navy"
-                    value={r.name}
-                    aria-label={`Rename ${r.id}`}
-                    onChange={(e) => renameResource(r.id, e.target.value)}
-                  />
-                  <input
-                    className="w-[56px] h-[40px] text-center bg-white font-mono text-[14px] text-ink border border-line rounded-none outline-none focus:border-navy shrink-0"
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={r.totalInstances}
-                    aria-label={`Instances for ${r.id}`}
-                    onChange={(e) =>
-                      report(setResourceInstances(r.id, Number(e.target.value)))
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="font-mono text-[13px] text-muted hover:text-danger px-8 py-4 shrink-0 cursor-pointer"
-                    aria-label={`Remove ${r.id}`}
-                    onClick={() => report(removeResource(r.id))}
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
-              {scenario.resources.length === 0 && (
-                <li className="text-muted text-[13px]">No resources defined.</li>
-              )}
-            </ul>
+                    <span className="w-[32px] h-[32px] border border-line bg-tint-bg font-mono text-[12px] font-medium text-ink flex items-center justify-center shrink-0">
+                      {r.id}
+                    </span>
+                    <input
+                      className="w-full h-[32px] px-8 bg-white font-mono text-[12px] text-ink border border-line rounded-none outline-none focus:border-navy"
+                      value={r.name}
+                      aria-label={`Rename ${r.id}`}
+                      onChange={(e) => renameResource(r.id, e.target.value)}
+                    />
+                    <input
+                      className="w-[44px] h-[32px] px-4 text-center bg-white font-mono text-[12px] text-ink border border-line rounded-none outline-none focus:border-navy shrink-0 [appearance:textfield]"
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={r.totalInstances}
+                      aria-label={`Instances for ${r.id}`}
+                      title="Total instances"
+                      onChange={(e) =>
+                        report(setResourceInstances(r.id, Number(e.target.value)))
+                      }
+                    />
+                    <Button
+                      variant="secondary"
+                      size="icon-sm"
+                      className="h-[32px] w-[32px] shrink-0"
+                      aria-label={`Remove ${r.id}`}
+                      onClick={() => report(removeResource(r.id))}
+                    >
+                      <CloseIcon size={16} />
+                    </Button>
+                  </li>
+                ))}
+                {scenario.resources.length === 0 && (
+                  <li className="text-muted text-[12px] py-4">No resources defined.</li>
+                )}
+              </ul>
+            </div>
           </AccordionRow>
 
           {/* 3. Scripts */}
@@ -315,137 +329,158 @@ export function Sidebar({
             isOpen={openSection === 'scripts'}
             onToggle={() => toggleSection('scripts')}
           >
-            <div className="border border-line p-12 bg-white space-y-8">
-              <p className="font-semibold text-ink text-[13px]">Request edge (P → R)</p>
-              <div className="grid grid-cols-3 gap-6">
-                <select
-                  className="h-[40px] px-8 bg-white font-mono text-[13px] text-ink border border-line rounded-none outline-none"
-                  value={reqProcess}
-                  aria-label="Requesting process"
-                  onChange={(e) => setReqProcess(e.target.value)}
-                >
-                  <option value="">Process…</option>
-                  {scenario.processes.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.id}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="h-[40px] px-8 bg-white font-mono text-[13px] text-ink border border-line rounded-none outline-none"
-                  value={reqResource}
-                  aria-label="Requested resource"
-                  onChange={(e) => setReqResource(e.target.value)}
-                >
-                  <option value="">Resource…</option>
-                  {scenario.resources.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.id}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  className="h-[40px] px-8 bg-white font-mono text-[13px] text-ink border border-line rounded-none outline-none text-center"
-                  type="number"
-                  min={1}
-                  value={reqCount}
-                  aria-label="Request count"
-                  onChange={(e) => setReqCount(e.target.value)}
-                />
-              </div>
-              <Button
-                variant="secondary"
-                size="compact"
-                className="w-full h-[40px]"
-                disabled={!reqProcess || !reqResource}
-                onClick={() => report(addRequestEdge(reqProcess, reqResource, Number(reqCount)))}
-              >
-                Add request
-              </Button>
-            </div>
-
-            <div className="border border-line p-12 bg-white space-y-8">
-              <p className="font-semibold text-ink text-[13px]">Assignment edge (R → P)</p>
-              <div className="grid grid-cols-3 gap-6">
-                <select
-                  className="h-[40px] px-8 bg-white font-mono text-[13px] text-ink border border-line rounded-none outline-none"
-                  value={asgResource}
-                  aria-label="Assigned resource"
-                  onChange={(e) => setAsgResource(e.target.value)}
-                >
-                  <option value="">Resource…</option>
-                  {scenario.resources.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.id}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="h-[40px] px-8 bg-white font-mono text-[13px] text-ink border border-line rounded-none outline-none"
-                  value={asgProcess}
-                  aria-label="Receiving process"
-                  onChange={(e) => setAsgProcess(e.target.value)}
-                >
-                  <option value="">Process…</option>
-                  {scenario.processes.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.id}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  className="h-[40px] px-8 bg-white font-mono text-[13px] text-ink border border-line rounded-none outline-none text-center"
-                  type="number"
-                  min={1}
-                  value={asgCount}
-                  aria-label="Assignment count"
-                  onChange={(e) => setAsgCount(e.target.value)}
-                />
-              </div>
-              <Button
-                variant="secondary"
-                size="compact"
-                className="w-full h-[40px]"
-                disabled={!asgProcess || !asgResource}
-                onClick={() => report(addAssignmentEdge(asgResource, asgProcess, Number(asgCount)))}
-              >
-                Add assignment
-              </Button>
-            </div>
-
-            {edgeMessage && (
-              <p className="p-8 border border-danger bg-danger-tint text-danger text-[13px]" role="alert">
-                ⚠ {edgeMessage}
-              </p>
-            )}
-
-            <ul className="space-y-4 max-h-[240px] overflow-y-auto pr-4">
-              {scenario.edges.map((edge) => (
-                <li
-                  key={edge.id}
-                  className="flex items-center justify-between gap-8 text-[13px] border-b border-line pb-4"
-                >
-                  <span>
-                    {edge.from} → {edge.to}{' '}
-                    <span className="text-muted">
-                      ({edge.type}
-                      {edge.count > 1 ? ` ×${edge.count}` : ''})
-                    </span>
-                  </span>
-                  <button
-                    type="button"
-                    className="font-mono text-muted hover:text-danger px-4 py-2 cursor-pointer"
-                    aria-label={`Remove edge ${edge.from} to ${edge.to}`}
-                    onClick={() => report(removeEdge(edge.id))}
+            <div className="space-y-16">
+              {/* Section 1: Request edge P to R */}
+              <div className="space-y-8">
+                <span className="font-poppins text-label uppercase text-muted block tracking-wider">
+                  Request edge (P → R)
+                </span>
+                <div className="grid grid-cols-2 gap-8 items-center">
+                  <Select
+                    sizeVariant="sm"
+                    menuAlign="left"
+                    value={reqProcess}
+                    placeholder="Process…"
+                    ariaLabel="Requesting process"
+                    options={[
+                      { value: '', label: 'Process…' },
+                      ...scenario.processes.map((p) => ({ value: p.id, label: p.id })),
+                    ]}
+                    onChange={setReqProcess}
+                  />
+                  <Select
+                    sizeVariant="sm"
+                    menuAlign="right"
+                    value={reqResource}
+                    placeholder="Resource…"
+                    ariaLabel="Requested resource"
+                    options={[
+                      { value: '', label: 'Resource…' },
+                      ...scenario.resources.map((r) => ({ value: r.id, label: r.id })),
+                    ]}
+                    onChange={setReqResource}
+                  />
+                </div>
+                <div className="grid grid-cols-[minmax(0,1fr)_56px] gap-8 items-center">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-full h-[32px] text-[12px] font-medium"
+                    disabled={!reqProcess || !reqResource}
+                    onClick={() => report(addRequestEdge(reqProcess, reqResource, Number(reqCount)))}
                   >
-                    Remove
-                  </button>
-                </li>
-              ))}
-              {scenario.edges.length === 0 && (
-                <li className="text-muted text-[13px]">No edges defined.</li>
+                    Add request
+                  </Button>
+                  <input
+                    className="w-[56px] h-[32px] px-6 bg-white font-mono text-[12px] text-ink border border-line rounded-none outline-none text-center shrink-0 focus:border-navy"
+                    type="number"
+                    min={1}
+                    value={reqCount}
+                    aria-label="Request count"
+                    title="Request count"
+                    onChange={(e) => setReqCount(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-line" />
+
+              {/* Section 2: Assignment edge R to P */}
+              <div className="space-y-8">
+                <span className="font-poppins text-label uppercase text-muted block tracking-wider">
+                  Assignment edge (R → P)
+                </span>
+                <div className="grid grid-cols-2 gap-8 items-center">
+                  <Select
+                    sizeVariant="sm"
+                    menuAlign="left"
+                    value={asgResource}
+                    placeholder="Resource…"
+                    ariaLabel="Assigned resource"
+                    options={[
+                      { value: '', label: 'Resource…' },
+                      ...scenario.resources.map((r) => ({ value: r.id, label: r.id })),
+                    ]}
+                    onChange={setAsgResource}
+                  />
+                  <Select
+                    sizeVariant="sm"
+                    menuAlign="right"
+                    value={asgProcess}
+                    placeholder="Process…"
+                    ariaLabel="Receiving process"
+                    options={[
+                      { value: '', label: 'Process…' },
+                      ...scenario.processes.map((p) => ({ value: p.id, label: p.id })),
+                    ]}
+                    onChange={setAsgProcess}
+                  />
+                </div>
+                <div className="grid grid-cols-[minmax(0,1fr)_56px] gap-8 items-center">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-full h-[32px] text-[12px] font-medium"
+                    disabled={!asgProcess || !asgResource}
+                    onClick={() => report(addAssignmentEdge(asgResource, asgProcess, Number(asgCount)))}
+                  >
+                    Add assignment
+                  </Button>
+                  <input
+                    className="w-[56px] h-[32px] px-6 bg-white font-mono text-[12px] text-ink border border-line rounded-none outline-none text-center shrink-0 focus:border-navy"
+                    type="number"
+                    min={1}
+                    value={asgCount}
+                    aria-label="Assignment count"
+                    title="Assignment count"
+                    onChange={(e) => setAsgCount(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {edgeMessage && (
+                <p className="p-8 border border-danger/30 bg-danger-tint text-danger font-mono text-[11px]" role="alert">
+                  ⚠ {edgeMessage}
+                </p>
               )}
-            </ul>
+
+              <div className="border-t border-line" />
+
+              {/* Edges List */}
+              <div className="space-y-4">
+                <span className="font-poppins text-label uppercase text-muted block tracking-wider">
+                  EDGES
+                </span>
+                <ul className="space-y-4 max-h-[240px] overflow-y-auto pr-2 divide-y divide-line">
+                  {scenario.edges.map((edge) => (
+                    <li
+                      key={edge.id}
+                      className="flex items-center justify-between gap-8 pt-4 first:pt-0 font-mono text-[12px] font-normal"
+                    >
+                      <span className="truncate">
+                        {edge.from} → {edge.to}{' '}
+                        <span className="text-muted">
+                          ({edge.type}
+                          {edge.count > 1 ? ` ×${edge.count}` : ''})
+                        </span>
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="h-[28px] w-[28px] shrink-0 text-muted hover:text-danger"
+                        aria-label={`Remove edge ${edge.from} to ${edge.to}`}
+                        onClick={() => report(removeEdge(edge.id))}
+                      >
+                        <CloseIcon size={14} />
+                      </Button>
+                    </li>
+                  ))}
+                  {scenario.edges.length === 0 && (
+                    <li className="text-muted text-[12px] font-mono py-4">No edges defined.</li>
+                  )}
+                </ul>
+              </div>
+            </div>
           </AccordionRow>
 
           {/* 4. Policies */}
@@ -455,10 +490,7 @@ export function Sidebar({
             isOpen={openSection === 'policies'}
             onToggle={() => toggleSection('policies')}
           >
-            <div className="space-y-16">
-              <PreventionPanel />
-              <BankersPanel />
-            </div>
+            <PreventionPanel />
           </AccordionRow>
 
           {/* 5. Advanced */}
@@ -467,44 +499,39 @@ export function Sidebar({
             isOpen={openSection === 'advanced'}
             onToggle={() => toggleSection('advanced')}
           >
-            <div className="space-y-16">
-              <div className="border border-line p-12 bg-white">
-                <label className="block mb-4 text-muted text-[13px]" htmlFor="seed-input">
-                  Random seed
-                </label>
-                <div className="flex gap-8">
-                  <input
-                    id="seed-input"
-                    className="w-full h-[40px] px-12 bg-white font-mono text-[14px] text-ink border border-line rounded-none outline-none focus:border-navy"
-                    value={seed}
-                    aria-label="Random seed"
-                    onChange={(e) => setSeed(e.target.value)}
-                    inputMode="numeric"
-                  />
-                  <Button
-                    variant="secondary"
-                    size="compact"
-                    className="whitespace-nowrap h-[40px]"
-                    onClick={handleRandom}
-                  >
-                    Generate
-                  </Button>
-                </div>
-              </div>
-              <RecoveryPanel />
+            <div className="space-y-8">
+              <label className="font-poppins text-label uppercase text-muted block tracking-wider" htmlFor="seed-input">
+                Random seed
+              </label>
+              <input
+                id="seed-input"
+                className="w-full h-[32px] px-8 bg-white font-mono text-[12px] text-ink border border-line rounded-none outline-none focus:border-navy"
+                value={seed}
+                aria-label="Random seed"
+                onChange={(e) => setSeed(e.target.value)}
+                inputMode="numeric"
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full h-[32px] text-[12px] font-medium"
+                onClick={handleRandom}
+              >
+                Random scenario
+              </Button>
             </div>
           </AccordionRow>
         </div>
       </div>
 
-      {/* Pinned to the bottom: Import and Export secondary buttons */}
+      {/* Pinned Footer at Bottom: Import | Export compact secondary buttons */}
       <div
-        className="border-t border-line bg-white shrink-0 flex gap-8 box-border w-full"
-        style={{ padding: '24px' }}
+        className="border-t border-line bg-white shrink-0 grid grid-cols-2 gap-8 box-border w-full px-16 py-12"
       >
         <Button
           variant="secondary"
-          className="flex-1 h-[40px]"
+          size="sm"
+          className="w-full h-[32px] text-[12px] font-medium"
           onClick={() => fileRef.current?.click()}
           aria-label="Import a scenario from a JSON file"
         >
@@ -512,7 +539,8 @@ export function Sidebar({
         </Button>
         <Button
           variant="secondary"
-          className="flex-1 h-[40px]"
+          size="sm"
+          className="w-full h-[32px] text-[12px] font-medium"
           onClick={handleExport}
           aria-label="Export this scenario as JSON"
         >

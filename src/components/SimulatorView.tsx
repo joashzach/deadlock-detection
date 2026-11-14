@@ -11,7 +11,7 @@ export function SimulatorView({ hideHeader = false }: { hideHeader?: boolean } =
 
   if (!simulator) {
     return (
-      <div className="h-full flex items-center justify-center p-24">
+      <div className="h-full flex items-center justify-center p-24 select-none">
         <div className="p-32 text-center border border-line bg-white max-w-[480px]">
           {!hideHeader && (
             <h2 className="font-poppins text-h3 font-semibold text-ink mb-12">Live simulator</h2>
@@ -20,9 +20,11 @@ export function SimulatorView({ hideHeader = false }: { hideHeader?: boolean } =
             Two deterministic runs comparing baseline concurrency with your active prevention policies.
           </p>
           <Button
-            variant="primary"
+            variant="secondary"
+            size="sm"
             onClick={initSimulator}
             data-testid="init-simulator"
+            className="text-[13px] px-18 h-[34px] font-medium font-poppins bg-white hover:bg-tint-bg text-ink border border-line"
           >
             Initialise simulation
           </Button>
@@ -32,7 +34,7 @@ export function SimulatorView({ hideHeader = false }: { hideHeader?: boolean } =
   }
 
   return (
-    <div className="h-full flex flex-col justify-between select-none">
+    <div className="h-full flex flex-col justify-between select-none min-h-0">
       {!hideHeader && (
         <div className="sr-only" role="group" aria-label="Standalone simulator controls">
           <button type="button" onClick={() => stepSimulator()} data-testid="sim-step">

@@ -92,30 +92,57 @@ const QUESTIONS: Question[] = [
   },
 ];
 
+const LETTERS = ['A', 'B', 'C', 'D'];
+
 export function Quiz() {
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [answers, setAnswers] = useState<boolean[]>([]);
   const [finished, setFinished] = useState(false);
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const question = QUESTIONS[index]!;
-  const answered = selected !== null;
   const score = answers.filter(Boolean).length;
 
   useEffect(() => {
     setFocusedIndex(0);
   }, [index]);
 
-  const choose = (i: number) => {
-    if (answered) return;
+  const selectOption = (i: number) => {
+    if (isSubmitted) return;
     setSelected(i);
+    setFocusedIndex(i);
+  };
+
+  const submitAnswer = () => {
+    if (selected === null || isSubmitted) return;
+    setIsSubmitted(true);
     setAnswers((prev) => {
       const next = [...prev];
-      next[index] = i === question.correct;
+      next[index] = selected === question.correct;
       return next;
     });
+  };
+
+  const nextQuestion = () => {
+    if (!isSubmitted) return;
+    if (index + 1 >= QUESTIONS.length) {
+      setFinished(true);
+      return;
+    }
+    setIndex((prev) => prev + 1);
+    setSelected(null);
+    setIsSubmitted(false);
+  };
+
+  const retry = () => {
+    setIndex(0);
+    setSelected(null);
+    setIsSubmitted(false);
+    setAnswers([]);
+    setFinished(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -129,51 +156,32 @@ export function Quiz() {
       const prevIdx = (focusedIndex - 1 + question.options.length) % question.options.length;
       setFocusedIndex(prevIdx);
       optionRefs.current[prevIdx]?.focus();
-    } else if (e.key === 'Enter' || e.key === ' ') {
-      if (!answered) {
+    } else if (e.key === ' ' || (e.key === 'Enter' && !isSubmitted && selected !== focusedIndex)) {
+      if (!isSubmitted) {
         e.preventDefault();
-        choose(focusedIndex);
+        selectOption(focusedIndex);
       }
     }
-  };
-
-  const next = () => {
-    if (!answered) return;
-    if (index + 1 >= QUESTIONS.length) {
-      setFinished(true);
-      return;
-    }
-    setIndex(index + 1);
-    setSelected(null);
-  };
-
-  const retry = () => {
-    setIndex(0);
-    setSelected(null);
-    setAnswers([]);
-    setFinished(false);
   };
 
   if (finished) {
     const percent = Math.round((score / QUESTIONS.length) * 100);
     return (
-      <div className="w-full min-h-[calc(100dvh-var(--nav-h))] flex items-center justify-center bg-tint-bg p-[16px] md:p-[24px] select-none">
-        <div className="w-full max-w-[680px] bg-white border border-line p-[24px] md:p-[32px] flex flex-col justify-between min-h-[580px] shadow-none">
-          <div>
-            <h1 className="text-page-title mb-[16px]">Quiz complete</h1>
-            <p className="font-mono text-[18px] text-ink mb-[16px]" data-testid="quiz-score">
-              You scored {score} / {QUESTIONS.length} ({percent}%)
-            </p>
-            <p className="text-body-mono mb-[32px]">
-              {percent === 100
-                ? 'A perfect score — you understand operating systems deadlocks.'
-                : percent >= 70
-                  ? 'Solid comprehension. Review the missed concepts in Learn and retry.'
-                  : 'Recommended to review the Learn section before attempting again.'}
-            </p>
-          </div>
-          <div className="pt-[16px] border-t border-line flex justify-end">
-            <Button variant="primary" className="min-w-[100px]" onClick={retry}>
+      <div className="w-full h-full overflow-hidden flex items-center justify-center bg-tint-bg p-16 select-none">
+        <div className="w-full max-w-[620px] bg-white border border-line p-24 sm:p-28 shadow-none">
+          <h1 className="font-poppins text-page-title text-ink font-semibold mb-12">Quiz complete</h1>
+          <p className="font-mono text-[15px] text-ink mb-12" data-testid="quiz-score">
+            You scored {score} / {QUESTIONS.length} ({percent}%)
+          </p>
+          <p className="font-mono text-body-mono text-muted mb-24">
+            {percent === 100
+              ? 'A perfect score — you understand operating systems deadlocks.'
+              : percent >= 70
+                ? 'Solid comprehension. Review the missed concepts in Learn and retry.'
+                : 'Recommended to review the Learn section before attempting again.'}
+          </p>
+          <div className="pt-16 border-t border-line flex justify-end">
+            <Button variant="primary" size="md" className="min-w-[104px]" onClick={retry}>
               Retry
             </Button>
           </div>
@@ -183,155 +191,167 @@ export function Quiz() {
   }
 
   return (
-    <div className="w-full min-h-[calc(100dvh-var(--nav-h))] flex items-center justify-center bg-tint-bg p-[16px] md:p-[24px] select-none">
-      <div className="w-full max-w-[680px] bg-white border border-line p-[24px] md:p-[32px] flex flex-col justify-between min-h-[660px] shadow-none">
-        <div>
-          {/* Header row: Question X of 8 left, Score Y right */}
-          <div className="flex items-center justify-between mb-[12px] font-mono text-[13px] text-ink">
-            <span data-testid="quiz-progress" aria-live="polite">
-              Question {index + 1} of {QUESTIONS.length}
-            </span>
-            <span className="text-muted" data-testid="quiz-score-header">
-              Score {score}
-            </span>
-          </div>
-
-          {/* Thin progress bar: 8 equal segments (4px high, 4px gaps) */}
-          <div className="grid grid-cols-8 gap-[4px] h-[4px] mb-[20px] w-full" aria-hidden="true">
-            {QUESTIONS.map((_, i) => {
-              let segClass = 'bg-line';
-              if (i < index) {
-                segClass = 'bg-navy';
-              } else if (i === index) {
-                segClass = 'border border-navy bg-white';
-              }
-              return <div key={i} className={clsx('h-[4px]', segClass)} />;
-            })}
-          </div>
-
-          {/* Question: Poppins 22/1.35/600, 16px below */}
-          <h2
-            id="quiz-question"
-            className="font-poppins text-[22px] font-semibold leading-[1.35] text-ink mb-[20px]"
-            data-testid="quiz-question"
-          >
-            {question.prompt}
-          </h2>
-
-          {/* Option rows: full width, min-height 52px, 1px border, padding 12px 16px, grid [28px letter box | text], 8px between rows */}
-          <ul
-            className="space-y-[8px]"
-            aria-labelledby="quiz-question"
-            onKeyDown={handleKeyDown}
-          >
-            {question.options.map((option, i) => {
-              const isSelected = i === selected;
-              const isCorrect = i === question.correct;
-              let borderClass = 'border-line';
-              let bgClass = 'bg-white hover:bg-tint-bg';
-              let textClass = 'text-ink';
-              let letterBoxBg = 'bg-tint-bg text-ink border-line';
-
-              if (answered) {
-                if (isCorrect) {
-                  borderClass = 'border-success';
-                  bgClass = 'bg-success-tint';
-                  textClass = 'text-success font-semibold';
-                  letterBoxBg = 'bg-success text-white border-success';
-                } else if (isSelected) {
-                  borderClass = 'border-danger';
-                  bgClass = 'bg-danger-tint';
-                  textClass = 'text-danger';
-                  letterBoxBg = 'bg-danger text-white border-danger';
-                } else {
-                  borderClass = 'border-line';
-                  bgClass = 'bg-white opacity-40';
-                  textClass = 'text-muted';
-                }
-              } else if (isSelected) {
-                borderClass = 'border-navy';
-                bgClass = 'bg-tint-bg';
-                textClass = 'text-navy font-semibold';
-                letterBoxBg = 'bg-navy text-white border-navy';
-              }
-
-              return (
-                <li key={i}>
-                  <button
-                    ref={(el) => {
-                      optionRefs.current[i] = el;
-                    }}
-                    type="button"
-                    className={clsx(
-                      'w-full min-h-[52px] text-left px-[16px] py-[12px] border transition-colors grid grid-cols-[28px_1fr] items-center gap-[12px] font-mono text-[14px] cursor-pointer rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy',
-                      borderClass,
-                      bgClass,
-                      textClass
-                    )}
-                    onClick={() => choose(i)}
-                    disabled={answered}
-                    data-testid={`quiz-option-${i}`}
-                    aria-pressed={isSelected}
-                    tabIndex={0}
-                  >
-                    <span
-                      className={clsx(
-                        'w-[28px] h-[28px] border flex items-center justify-center font-mono text-[12px] font-semibold select-none shrink-0',
-                        letterBoxBg
-                      )}
-                    >
-                      {String.fromCharCode(65 + i)}
-                    </span>
-                    <div className="flex items-center justify-between gap-[8px] min-w-0">
-                      <span className="leading-tight">{option}</span>
-                      {answered && isCorrect && (
-                        <span className="font-mono text-[12px] text-success font-semibold shrink-0">
-                          ✓ Correct
-                        </span>
-                      )}
-                      {answered && isSelected && !isCorrect && (
-                        <span className="font-mono text-[12px] text-danger font-semibold shrink-0">
-                          ✕ Incorrect
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-
-        {/* Feedback area with RESERVED fixed min-height so selecting an option never moves anything */}
-        <div className="min-h-[120px] my-[16px] flex flex-col justify-center">
-          {answered && (
-            <div
-              className="p-[12px] md:p-[14px] border border-line bg-tint-bg font-mono text-[13px] leading-[1.6]"
-              role="status"
-              data-testid="quiz-feedback"
-            >
-              <div className="font-semibold mb-[2px] text-ink">
-                {selected === question.correct ? '✓ Correct.' : '✕ Incorrect.'}
-              </div>
-              <p className="text-muted">{question.explanation}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer row: hint on left, Next button on right (always visible, disabled 40% opacity until answered) */}
-        <div className="flex items-center justify-between pt-[16px] border-t border-line">
-          <span className="font-mono text-[13px] text-muted">
-            {answered ? '' : 'Select an answer to continue'}
+    <div className="w-full h-full overflow-hidden flex items-center justify-center bg-tint-bg p-12 sm:p-16 select-none">
+      <div className="w-full max-w-[640px] bg-white border border-line p-20 sm:p-24 shadow-none">
+        {/* Header row: Question X of 8 and Score */}
+        <div className="flex items-center justify-between mb-6 font-mono text-[12px] text-muted">
+          <span data-testid="quiz-progress" aria-live="polite">
+            Question {index + 1} of {QUESTIONS.length}
           </span>
-          <Button
-            variant="primary"
-            className="min-w-[100px] h-[40px]"
-            disabled={!answered}
-            onClick={next}
-            data-testid="quiz-next"
-          >
-            {index + 1 >= QUESTIONS.length ? 'Finish' : 'Next'}
-          </Button>
+          <span data-testid="quiz-score-header">
+            Score: <span className="text-ink font-medium">{score}</span> / {QUESTIONS.length}
+          </span>
+        </div>
+
+        {/* 8-segment progress bar */}
+        <div className="grid grid-cols-8 gap-4 h-[4px] mb-16 w-full" aria-hidden="true">
+          {QUESTIONS.map((_, i) => {
+            const isCompleted = i < index;
+            const isCurrent = i === index;
+            return (
+              <div
+                key={i}
+                className={clsx(
+                  'h-[4px] transition-colors',
+                  (isCompleted || isCurrent) ? 'bg-navy' : 'bg-line'
+                )}
+              />
+            );
+          })}
+        </div>
+
+        {/* Question Prompt */}
+        <h2
+          id="quiz-question"
+          className="font-poppins text-[18px] sm:text-[20px] font-semibold leading-[1.3] text-ink mb-16"
+          data-testid="quiz-question"
+        >
+          {question.prompt}
+        </h2>
+
+        {/* Answer Options */}
+        <ul
+          className="space-y-8 mb-16"
+          aria-labelledby="quiz-question"
+          onKeyDown={handleKeyDown}
+        >
+          {question.options.map((option, i) => {
+            const isSelected = i === selected;
+            const isCorrect = i === question.correct;
+
+            let borderClass = 'border-line';
+            let bgClass = 'bg-white hover:bg-tint-bg';
+            let textClass = 'text-ink';
+            let letterBoxClass = 'bg-tint-bg text-ink';
+            let statusLabel: string | null = null;
+            let isMuted = false;
+
+            if (isSubmitted) {
+              if (isCorrect) {
+                borderClass = 'border-success';
+                bgClass = 'bg-success-tint';
+                textClass = 'text-success font-medium';
+                letterBoxClass = 'bg-success text-white';
+                statusLabel = 'Correct';
+              } else if (isSelected) {
+                borderClass = 'border-danger';
+                bgClass = 'bg-danger-tint';
+                textClass = 'text-danger font-medium';
+                letterBoxClass = 'bg-danger text-white';
+                statusLabel = 'Incorrect';
+              } else {
+                isMuted = true;
+                borderClass = 'border-line';
+                bgClass = 'bg-white';
+                textClass = 'text-muted';
+                letterBoxClass = 'bg-tint-bg text-muted';
+              }
+            } else if (isSelected) {
+              borderClass = 'border-navy';
+              bgClass = 'bg-tint-bg';
+              textClass = 'text-ink font-medium';
+              letterBoxClass = 'bg-navy text-white';
+            }
+
+            return (
+              <li key={i}>
+                <button
+                  ref={(el) => (optionRefs.current[i] = el)}
+                  type="button"
+                  tabIndex={0}
+                  disabled={isSubmitted}
+                  data-testid={`quiz-option-${i}`}
+                  className={clsx(
+                    'w-full min-h-[44px] px-14 py-8 border text-left font-mono text-[13px] transition-colors rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy focus-visible:outline-offset-2',
+                    borderClass,
+                    bgClass,
+                    textClass,
+                    isMuted && 'opacity-40 cursor-default',
+                    !isSubmitted && 'cursor-pointer',
+                    'grid grid-cols-[24px_minmax(0,1fr)_auto] gap-10 items-center'
+                  )}
+                  onClick={() => selectOption(i)}
+                  aria-label={`Option ${LETTERS[i]}: ${option}`}
+                >
+                  <span
+                    className={clsx(
+                      'w-[24px] h-[24px] flex items-center justify-center font-mono text-[12px] font-semibold shrink-0 select-none transition-colors',
+                      letterBoxClass
+                    )}
+                  >
+                    {LETTERS[i]}
+                  </span>
+                  <span className="leading-snug whitespace-normal">{option}</span>
+                  {statusLabel && (
+                    <span className="font-mono text-tiny-mono uppercase tracking-wider font-semibold ml-8 shrink-0">
+                      {statusLabel}
+                    </span>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* Footer row: Explanation (left) and Submit / Next button (right) */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-12 min-h-[60px]">
+          {/* Explanation placed below options and to the left of Next */}
+          <div className="flex-1 min-w-0 min-h-[60px]" data-testid="quiz-feedback">
+            {isSubmitted ? (
+              <p
+                className="font-mono text-small-mono text-muted leading-relaxed"
+                data-testid="quiz-explanation"
+              >
+                {question.explanation}
+              </p>
+            ) : null}
+          </div>
+
+          {/* Submit / Next Action (identical UI and dimensions) */}
+          <div className="shrink-0 flex justify-end">
+            {!isSubmitted ? (
+              <Button
+                variant="primary"
+                size="md"
+                disabled={selected === null}
+                onClick={submitAnswer}
+                className="min-w-[104px]"
+                data-testid="quiz-submit"
+              >
+                Submit
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="md"
+                onClick={nextQuestion}
+                className="min-w-[104px]"
+                data-testid="quiz-next"
+              >
+                {index + 1 >= QUESTIONS.length ? 'Finish' : 'Next'}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { AppNavbar } from './AppNavbar';
 import { ShortcutsDialog } from './ShortcutsDialog';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
@@ -6,18 +6,13 @@ import { useLabStore } from '../store/useLabStore';
 
 export function Layout() {
   useKeyboardShortcuts();
-  const location = useLocation();
-  const isFixedLayout = location.pathname.startsWith('/lab') || location.pathname.startsWith('/learn');
   const shortcutsOpen = useLabStore((s) => s.shortcutsOpen);
   const setShortcutsOpen = useLabStore((s) => s.setShortcutsOpen);
 
   return (
     <div
-      className={
-        isFixedLayout
-          ? 'h-[100dvh] max-h-[100dvh] flex flex-col bg-white overflow-hidden'
-          : 'min-h-[100dvh] flex flex-col bg-white overflow-x-hidden'
-      }
+      className="grid h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-tint-bg"
+      style={{ gridTemplateRows: 'var(--nav-h) 1fr' }}
     >
       <a
         href="#main-content"
@@ -26,11 +21,13 @@ export function Layout() {
         Skip to main content
       </a>
 
+      {/* Row 1: Navbar rendered outside the outlet so it never remounts or reflows */}
       <AppNavbar />
 
+      {/* Row 2: Outlet area */}
       <main
         id="main-content"
-        className={isFixedLayout ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : 'flex-1 flex flex-col'}
+        className="w-full h-full min-h-0 min-w-0 overflow-hidden relative flex flex-col"
       >
         <Outlet />
       </main>

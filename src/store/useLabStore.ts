@@ -402,7 +402,7 @@ export const useLabStore = create<LabState>((set, get) => {
         scripts: [],
         simulator: null,
         error: null,
-        notice: 'Scenario reset.',
+        notice: null,
         past: [],
         future: [],
       });

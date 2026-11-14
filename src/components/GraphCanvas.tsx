@@ -5,10 +5,10 @@ import { useDisplayedScenario } from '../store/selectors';
 import { computeCycleEdgeIds } from '../lib/cycleEdges';
 import { StateMarker } from './ui/Primitives';
 
-const PROCESS_RADIUS = 30;
-const RESOURCE_HALF_W = 54;
-const RESOURCE_HALF_H = 38;
-const RESOURCE_RADIUS = 58; // approximate radius for edge trimming
+const PROCESS_RADIUS = 26;
+const RESOURCE_HALF_W = 46;
+const RESOURCE_HALF_H = 32;
+const RESOURCE_RADIUS = 48; // approximate radius for edge trimming
 
 interface Viewport {
   x: number;
@@ -149,12 +149,12 @@ export function GraphCanvas() {
       minY = Math.min(minY, pos.y - RESOURCE_RADIUS);
       maxY = Math.max(maxY, pos.y + RESOURCE_RADIUS);
     }
-    const pad = 24;
+    const pad = 44;
     const w = maxX - minX + pad * 2;
     const h = maxY - minY + pad * 2;
-    const safeAreaBottom = 56;
+    const safeAreaBottom = 48;
     const availableHeight = Math.max(100, rect.height - safeAreaBottom);
-    const k = Math.min(rect.width / w, availableHeight / h, 1.6);
+    const k = Math.min(rect.width / w, availableHeight / h, 1.15);
     const cx = (minX + maxX) / 2;
     const cy = (minY + maxY) / 2;
     setView({
@@ -319,17 +319,17 @@ export function GraphCanvas() {
         onPointerCancel={endPointer}
       >
         <defs>
-          <marker id="arrow-solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--color-obsidian)" />
+          <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-navy)" />
           </marker>
-          <marker id="arrow-request" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--color-graphite)" />
+          <marker id="arrow-request" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-muted)" />
           </marker>
-          <marker id="arrow-danger" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--color-ember)" />
+          <marker id="arrow-danger" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-ember)" />
           </marker>
-          <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--color-ink-black)" />
+          <marker id="arrow-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-navy)" />
           </marker>
         </defs>
 
@@ -345,10 +345,10 @@ export function GraphCanvas() {
             const stroke = isDanger
               ? 'var(--color-ember)'
               : isHighlighted
-                ? 'var(--color-ink-black)'
+                ? 'var(--color-navy)'
                 : isRequest
-                  ? 'var(--color-graphite)'
-                  : 'var(--color-obsidian)';
+                  ? 'var(--color-muted)'
+                  : 'var(--color-navy)';
             const marker = isDanger
               ? 'url(#arrow-danger)'
               : isHighlighted
@@ -369,22 +369,33 @@ export function GraphCanvas() {
                   x2={t.x2}
                   y2={t.y2}
                   stroke={stroke}
-                  strokeWidth={isDanger || isHighlighted ? 3.5 : 1.5}
-                  strokeDasharray={isRequest ? '6 5' : undefined}
+                  strokeWidth={isDanger ? 2.2 : isHighlighted ? 2 : 1.5}
+                  strokeDasharray={isRequest ? '5 4' : undefined}
                   markerEnd={marker}
                   data-testid={isDanger ? 'cycle-edge-line' : undefined}
                 />
                 {edge.count > 1 && (
-                  <text
-                    x={t.mx}
-                    y={t.my - 6}
-                    textAnchor="middle"
-                    className="font-mono"
-                    fontSize={12}
-                    fill="var(--color-graphite)"
-                  >
-                    ×{edge.count}
-                  </text>
+                  <g transform={`translate(${t.mx}, ${t.my - 6})`}>
+                    <rect
+                      x={-11}
+                      y={-8}
+                      width={22}
+                      height={14}
+                      fill="var(--color-white)"
+                      stroke={isDanger ? 'var(--color-danger-tint)' : 'var(--color-line)'}
+                      strokeWidth={1}
+                    />
+                    <text
+                      textAnchor="middle"
+                      dy={3}
+                      className="font-mono"
+                      fontSize={11}
+                      fontWeight={500}
+                      fill={isDanger ? 'var(--color-ember)' : 'var(--color-muted)'}
+                    >
+                      ×{edge.count}
+                    </text>
+                  </g>
                 )}
               </g>
             );
@@ -419,55 +430,50 @@ export function GraphCanvas() {
                   y={-RESOURCE_HALF_H}
                   width={RESOURCE_HALF_W * 2}
                   height={RESOURCE_HALF_H * 2}
-                  fill={isDanger ? 'var(--color-obsidian)' : 'var(--surface-card-cell)'}
-                  stroke={isDanger ? 'var(--color-ember)' : isSelected ? 'var(--color-ink-black)' : 'var(--color-charcoal)'}
-                  strokeWidth={isSelected || isDanger ? 3 : 2}
+                  fill={isDanger ? 'var(--color-danger-tint)' : 'var(--surface-card-cell)'}
+                  stroke={isDanger ? 'var(--color-ember)' : isSelected ? 'var(--color-navy)' : 'var(--color-line)'}
+                  strokeWidth={isDanger || isSelected ? 2 : 1.5}
                   rx={0}
                 />
                 <text
                   textAnchor="middle"
-                  dy={-12}
+                  dy={-9}
                   className="font-mono"
-                  fontSize={16}
-                  fontWeight={600}
-                  fill={isDanger ? 'var(--color-off-white)' : 'var(--color-ink-black)'}
+                  fontSize={13}
+                  fontWeight={500}
+                  fill={isDanger ? 'var(--color-ember)' : 'var(--color-ink)'}
                 >
                   {resource.id}
                 </text>
                 <text
                   textAnchor="middle"
-                  dy={4}
+                  dy={5}
                   className="font-mono"
-                  fontSize={12}
-                  fontWeight={500}
-                  fill={isDanger ? 'var(--color-fog)' : 'var(--color-graphite)'}
+                  fontSize={11}
+                  fontWeight={400}
+                  fill="var(--color-muted)"
                 >
                   {allocated}/{resource.totalInstances}
                 </text>
                 {/* Instance dots inside the card: filled = allocated */}
-                <g transform={`translate(${-((resource.totalInstances - 1) * 10) / 2}, 22)`}>
+                <g transform={`translate(${-((resource.totalInstances - 1) * 8) / 2}, 18)`}>
                   {Array.from({ length: resource.totalInstances }, (_, i) => (
                     <circle
                       key={i}
-                      cx={i * 10}
+                      cx={i * 8}
                       cy={0}
-                      r={3.5}
-                      fill={i < allocated ? (isDanger ? 'var(--color-ember)' : 'var(--color-obsidian)') : 'var(--surface-canvas)'}
-                      stroke={isDanger ? 'var(--color-ember)' : 'var(--color-charcoal)'}
-                      strokeWidth={1.5}
+                      r={2.5}
+                      fill={i < allocated ? (isDanger ? 'var(--color-ember)' : 'var(--color-navy)') : 'var(--color-white)'}
+                      stroke={isDanger ? 'var(--color-ember)' : (i < allocated ? 'var(--color-navy)' : 'var(--color-line)')}
+                      strokeWidth={1}
                     />
                   ))}
                 </g>
                 {isDanger && (
-                  <text
-                    textAnchor="middle"
-                    dy={-RESOURCE_HALF_H - 8}
-                    className="font-mono font-medium"
-                    fontSize={12}
-                    fill="var(--color-ember)"
-                  >
-                    ⚠ in deadlock
-                  </text>
+                  <g transform={`translate(${RESOURCE_HALF_W - 9}, ${-RESOURCE_HALF_H + 9})`}>
+                    <circle r={5} fill="var(--color-ember)" />
+                    <text textAnchor="middle" dy={3} fill="#FFFFFF" fontSize={8} fontWeight={700}>!</text>
+                  </g>
                 )}
               </g>
             );
@@ -486,11 +492,9 @@ export function GraphCanvas() {
               ? 'var(--color-ember)'
               : isWarning
                 ? 'var(--color-amber)'
-                : isActive || isSuccess
-                  ? 'var(--color-ink-black)'
-                  : isSelected
-                    ? 'var(--color-ink-black)'
-                    : 'var(--color-charcoal)';
+                : isActive || isSuccess || isSelected
+                  ? 'var(--color-navy)'
+                  : 'var(--color-line)';
             return (
               <g
                 key={process.id}
@@ -512,30 +516,25 @@ export function GraphCanvas() {
                   cx={0}
                   cy={0}
                   r={PROCESS_RADIUS}
-                  fill={isDanger ? 'var(--color-obsidian)' : 'var(--surface-card-cell)'}
+                  fill={isDanger ? 'var(--color-danger-tint)' : 'var(--surface-card-cell)'}
                   stroke={stroke}
-                  strokeWidth={isSelected || isDanger || isActive ? 3 : 2}
+                  strokeWidth={isSelected || isDanger || isActive ? 2 : 1.5}
                 />
                 <text
                   textAnchor="middle"
-                  dy={5}
+                  dy={4}
                   className="font-mono"
-                  fontSize={16}
-                  fontWeight={600}
-                  fill={isDanger ? 'var(--color-off-white)' : 'var(--color-ink-black)'}
+                  fontSize={13}
+                  fontWeight={500}
+                  fill={isDanger ? 'var(--color-ember)' : 'var(--color-ink)'}
                 >
                   {process.id}
                 </text>
                 {isDanger && (
-                  <text
-                    textAnchor="middle"
-                    dy={-PROCESS_RADIUS - 8}
-                    className="font-mono font-medium"
-                    fontSize={12}
-                    fill="var(--color-ember)"
-                  >
-                    ⚠ deadlocked
-                  </text>
+                  <g transform="translate(16, -16)">
+                    <circle r={5} fill="var(--color-ember)" />
+                    <text textAnchor="middle" dy={3} fill="#FFFFFF" fontSize={8} fontWeight={700}>!</text>
+                  </g>
                 )}
               </g>
             );
@@ -550,7 +549,7 @@ export function GraphCanvas() {
       >
         <button
           type="button"
-          className="h-[var(--ctrl-h)] w-[var(--ctrl-h)] flex items-center justify-center font-mono text-[13px] text-ink bg-white hover:bg-tint-bg transition-colors border-b border-line cursor-pointer select-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
+          className="h-[32px] w-[32px] flex items-center justify-center font-mono text-[11px] text-ink bg-white hover:bg-tint-bg transition-colors border-b border-line cursor-pointer select-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
           onClick={fitToScreen}
           aria-label="Fit graph to screen"
         >
@@ -558,7 +557,7 @@ export function GraphCanvas() {
         </button>
         <button
           type="button"
-          className="h-[var(--ctrl-h)] w-[var(--ctrl-h)] flex items-center justify-center font-mono text-[14px] text-ink bg-white hover:bg-tint-bg transition-colors border-b border-line cursor-pointer select-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
+          className="h-[32px] w-[32px] flex items-center justify-center font-mono text-[13px] text-ink bg-white hover:bg-tint-bg transition-colors border-b border-line cursor-pointer select-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
           onClick={() => setView((v) => ({ ...v, k: Math.min(2.5, v.k * 1.2) }))}
           aria-label="Zoom in"
         >
@@ -566,7 +565,7 @@ export function GraphCanvas() {
         </button>
         <button
           type="button"
-          className="h-[var(--ctrl-h)] w-[var(--ctrl-h)] flex items-center justify-center font-mono text-[14px] text-ink bg-white hover:bg-tint-bg transition-colors cursor-pointer select-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
+          className="h-[32px] w-[32px] flex items-center justify-center font-mono text-[13px] text-ink bg-white hover:bg-tint-bg transition-colors cursor-pointer select-none outline-none focus-visible:outline-2 focus-visible:outline-navy"
           onClick={() => setView((v) => ({ ...v, k: Math.max(0.3, v.k / 1.2) }))}
           aria-label="Zoom out"
         >
@@ -574,12 +573,12 @@ export function GraphCanvas() {
         </button>
       </div>
 
-      {/* Collapsible Legend at bottom-left: height var(--ctrl-h), auto width, inset 16px */}
-      <div data-testid="legend-control" className="absolute bottom-16 left-16 z-10 text-body-sm">
+      {/* Collapsible Legend at bottom-left: height 32px, auto width, inset 16px */}
+      <div data-testid="legend-control" className="absolute bottom-16 left-16 z-10 font-mono text-[12px]">
         {!legendOpen ? (
           <button
             type="button"
-            className="h-[var(--ctrl-h)] px-12 border border-line bg-white text-ink font-mono text-[13px] flex items-center gap-6 cursor-pointer select-none hover:bg-tint-bg transition-colors outline-none focus-visible:outline-2 focus-visible:outline-navy"
+            className="h-[32px] px-10 border border-line bg-white text-ink font-mono text-[12px] flex items-center gap-6 cursor-pointer select-none hover:bg-tint-bg transition-colors outline-none focus-visible:outline-2 focus-visible:outline-navy"
             onClick={() => setLegendOpen(true)}
             aria-expanded={false}
             aria-label="Open graph legend"

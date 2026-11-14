@@ -1,10 +1,8 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import clsx from 'clsx';
 import { useLabStore } from '../store/useLabStore';
-import { detectDeadlock } from '../engine/detect';
 import { COMPLEXITY } from '../lib/complexity';
 import { RagVsWfgDiagram } from '../components/LearnDiagrams';
-import { Button } from '../components/ui/Button';
 
 const TOPICS = [
   'What is a deadlock',
@@ -17,66 +15,75 @@ const TOPICS = [
 
 type TopicId = (typeof TOPICS)[number];
 
-const CONDITION_KEYS = ['mutualExclusion', 'holdAndWait', 'noPreemption', 'circularWait'] as const;
-type ConditionKey = (typeof CONDITION_KEYS)[number];
-
-const CONDITION_LABELS: Record<ConditionKey, string> = {
-  mutualExclusion: 'Mutual exclusion',
-  holdAndWait: 'Hold and wait',
-  noPreemption: 'No preemption',
-  circularWait: 'Circular wait',
-};
+const COFFMAN_CONDITIONS = [
+  {
+    key: 'mutualExclusion',
+    title: 'Mutual exclusion',
+    description:
+      'Some resources can be used by only one process at a time. If a process is using such a resource, other processes must wait until it becomes available. This condition matters when resources cannot be safely shared between processes.',
+  },
+  {
+    key: 'holdAndWait',
+    title: 'Hold and wait',
+    description:
+      'A process holds at least one resource while waiting to acquire another resource held by a different process. For example, a process might hold a printer while waiting for a scanner. This can contribute to deadlock when processes continue waiting for resources held by one another.',
+  },
+  {
+    key: 'noPreemption',
+    title: 'No preemption',
+    description:
+      'Resources cannot be forcibly taken away from a process; the process must release them voluntarily after use. If a process holds a resource and waits indefinitely for another, the operating system cannot simply reclaim the resource under this condition. This can allow deadlock to persist.',
+  },
+  {
+    key: 'circularWait',
+    title: 'Circular wait',
+    description:
+      'A cycle of processes exists in which each process waits for a resource held by the next process in the cycle. For example, Process A waits for a resource held by B, while B waits for one held by A. This circular dependency can prevent every process in the cycle from making progress.',
+  },
+] as const;
 
 const slug = (topic: string) => topic.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 export function Learn() {
   const scenario = useLabStore((s) => s.scenario);
   const [topic, setTopic] = useState<TopicId>('What is a deadlock');
-  const [guesses, setGuesses] = useState<Partial<Record<ConditionKey, boolean>>>({});
   const rightPaneRef = useRef<HTMLElement>(null);
-
-  const assessment = useMemo(() => {
-    try {
-      return detectDeadlock(scenario).result.coffmanStatus;
-    } catch {
-      return null;
-    }
-  }, [scenario]);
-
-  const answered = CONDITION_KEYS.filter((key) => guesses[key] !== undefined);
-  const correct = answered.filter((key) => guesses[key] === assessment?.[key]);
-  const assessable = scenario.processes.length > 0 && scenario.resources.length > 0;
 
   const handleSelectTopic = (t: TopicId) => {
     setTopic(t);
   };
 
   useEffect(() => {
-    rightPaneRef.current?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    if (typeof rightPaneRef.current?.scrollTo === 'function') {
+      rightPaneRef.current.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    }
   }, [topic]);
 
   return (
-    <div className="w-full h-[calc(100dvh-var(--nav-h))] max-h-[calc(100dvh-var(--nav-h))] flex flex-col md:flex-row bg-white overflow-hidden select-none">
-      {/* Left Pane: fixed 280px on desktop (flush left, right border, padding 32 24 32 32); horizontal bar on mobile */}
+    <div className="w-full h-full flex flex-col md:flex-row bg-white overflow-hidden select-none">
+      {/* Left Pane: minimal, non-scrollable educational sidebar with clean numbering */}
       <nav
         className={clsx(
-          // Desktop (>=768px): fixed 280px left pane
-          'md:w-[280px] md:min-w-[280px] md:max-w-[280px] md:shrink-0 md:border-r md:border-line md:bg-white md:pt-[32px] md:pr-[24px] md:pb-[32px] md:pl-[32px] md:h-full md:overflow-y-auto',
+          // Desktop (>=768px): fixed 240px to 260px, non-scrollable, minimal layout
+          'hidden md:flex md:flex-col md:w-[240px] lg:w-[260px] md:min-w-[240px] lg:min-w-[260px] md:shrink-0 md:border-r md:border-line md:bg-white md:py-10 md:px-0 md:h-full md:overflow-hidden select-none',
           // Mobile (<768px): horizontal tab bar pinned under navbar
-          'max-md:shrink-0 max-md:w-full max-md:flex max-md:items-center max-md:overflow-x-auto max-md:border-b max-md:border-line max-md:bg-white max-md:px-[16px] max-md:h-[48px] no-scrollbar z-10'
+          'max-md:shrink-0 max-md:w-full max-md:flex max-md:items-center max-md:overflow-x-auto max-md:border-b max-md:border-line max-md:bg-white max-md:px-10 max-md:h-[42px] no-scrollbar z-10'
         )}
         aria-label="Theory topics"
         data-testid="learn-topic-nav"
       >
-        <div className="hidden md:block text-label-caps mb-[24px] leading-tight">
-          THEORY TOPICS
+        <div className="hidden md:flex items-center px-14 pt-4 pb-8">
+          <span className="font-poppins text-label uppercase text-muted tracking-wider">
+            TOPICS
+          </span>
         </div>
         <div
-          className="flex md:flex-col gap-[4px] max-md:h-full max-md:gap-[16px] max-md:items-center w-full"
+          className="flex md:flex-col gap-1 max-md:h-full max-md:gap-6 max-md:items-center w-full"
           role="tablist"
         >
-          {TOPICS.map((t) => {
+          {TOPICS.map((t, idx) => {
             const active = topic === t;
+            const num = String(idx + 1).padStart(2, '0');
             return (
               <button
                 key={t}
@@ -86,16 +93,29 @@ export function Learn() {
                 aria-selected={active}
                 aria-controls="learn-panel"
                 className={clsx(
-                  'text-left font-poppins text-[14px] font-medium transition-colors cursor-pointer rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy',
-                  'md:w-full md:min-h-[40px] md:flex md:items-center md:border-l-2 md:pl-[14px] md:py-[6px] md:leading-[1.3] md:whitespace-normal md:border-b-0',
-                  'max-md:h-full max-md:px-[4px] max-md:flex max-md:items-center max-md:whitespace-nowrap max-md:border-b-2 max-md:border-l-0',
+                  'text-left font-poppins transition-colors cursor-pointer rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy group',
+                  // Desktop: compact vertical padding and tight gap so all 6 modules are easily visible without scrolling
+                  'md:w-full md:flex md:items-center md:gap-10 md:px-14 md:py-6 md:border-l-2 md:border-b-0',
+                  // Mobile
+                  'max-md:h-full max-md:px-10 max-md:flex max-md:items-center max-md:gap-6 max-md:whitespace-nowrap max-md:border-b-2 max-md:border-l-0 max-md:shrink-0',
                   active
-                    ? 'md:border-l-navy max-md:border-b-navy text-ink font-semibold'
-                    : 'md:border-l-transparent max-md:border-b-transparent text-muted hover:text-ink'
+                    ? 'md:border-l-navy md:bg-tint-bg max-md:border-b-navy text-ink font-medium'
+                    : 'md:border-l-transparent md:hover:bg-tint-bg/50 max-md:border-b-transparent text-muted hover:text-ink'
                 )}
                 onClick={() => handleSelectTopic(t)}
               >
-                {t}
+                <span
+                  className={clsx(
+                    'font-mono text-[11px] tabular-nums shrink-0 select-none transition-colors',
+                    active ? 'text-navy font-semibold' : 'text-muted'
+                  )}
+                  aria-hidden="true"
+                >
+                  {num}
+                </span>
+                <span className="text-[13px] leading-snug whitespace-normal break-words">
+                  {t}
+                </span>
               </button>
             );
           })}
@@ -105,9 +125,13 @@ export function Learn() {
       {/* Right Scrollable Pane: ONLY scrollable area */}
       <main
         ref={rightPaneRef}
-        className="flex-1 min-w-0 overflow-y-auto bg-white"
+        className="flex-1 min-w-0 h-full overflow-y-auto bg-white"
+        style={{ scrollbarGutter: 'stable' }}
       >
-        <div className="max-w-[720px] w-full pt-[32px] px-[24px] md:px-[48px] pb-[48px]">
+        <div className={clsx(
+          'w-full pt-32 px-24 md:px-48 pb-48',
+          topic === 'Complexity' || topic === 'RAG vs WFG' ? 'max-w-[880px]' : 'max-w-[760px]'
+        )}>
           <article
             role="tabpanel"
             id="learn-panel"
@@ -116,18 +140,18 @@ export function Learn() {
           >
             {topic === 'What is a deadlock' && (
               <div>
-                <h1 className="text-page-title mb-[16px]">
+                <h1 className="font-poppins text-page-title text-ink font-semibold mb-16">
                   What is a deadlock
                 </h1>
-                <div className="space-y-[16px] text-body-mono max-w-[68ch]">
+                <div className="space-y-16 font-mono text-body-mono text-muted max-w-[68ch]">
                   <p>
-                    A deadlock is a condition in a concurrent system where a set of processes are blocked because every process is holding at least one resource and waiting for another resource acquired by some other process in the same set.
+                    A <strong>deadlock</strong> is a permanent stall in an operating system where a set of processes cannot proceed because each process holds at least one resource and is waiting for another resource held by another process in the same set.
                   </p>
                   <p>
-                    Because every blocked process requires an action from another blocked process in order to wake up, none can ever proceed. Without external intervention, the system remains frozen permanently.
+                    Deadlocks cannot resolve on their own. Once a deadlock cycle forms, the involved processes will remain blocked indefinitely unless the operating system intervenes by preempting resources or terminating processes.
                   </p>
                   <p>
-                    Deadlock differs fundamentally from starvation and livelock. In starvation, a thread is delayed indefinitely due to scheduling bias while other threads make progress. In livelock, processes continually change internal states in response to each other without accomplishing forward work. In deadlock, processes are strictly motionless.
+                    DeadlockLab provides interactive simulations of the classical algorithms developed by Edsger Dijkstra and other operating system pioneers to detect, prevent, avoid, and recover from deadlocks.
                   </p>
                 </div>
               </div>
@@ -135,114 +159,49 @@ export function Learn() {
 
             {topic === 'Four Coffman conditions' && (
               <div>
-                <h1 className="text-page-title mb-[16px]">
+                <h1 className="font-poppins text-page-title text-ink font-semibold mb-16">
                   Four Coffman conditions
                 </h1>
-                <p className="text-body-mono mb-[32px]">
-                  Edward G. Coffman Jr. established in 1971 that a deadlock can arise if and only if all four conditions hold simultaneously. Breaking any single condition mathematically prevents deadlock.
+                <p className="font-mono text-body-mono text-muted mb-24 max-w-[68ch]">
+                  In 1971, Edward G. Coffman Jr. proved that a deadlock can arise if and only if all four of the following conditions hold simultaneously:
                 </p>
 
-                {!assessment || !assessable ? (
-                  <div
-                    className="p-[16px] border border-line bg-tint-bg font-mono text-[13px] text-muted"
-                    data-testid="coffman-unassessable"
-                  >
-                    The current scenario has no process or no resource loaded. Load a scenario in the Lab to assess whether conditions hold.
-                  </div>
-                ) : (
-                  <div className="space-y-[32px]" data-testid="coffman-checklist">
-                    <div className="flex items-center justify-between border-b border-line pb-[12px] font-mono text-[13px]">
-                      <span className="text-ink font-semibold">Interactive Checklist</span>
-                      <span className="text-muted" data-testid="coffman-score">
-                        {answered.length === 0 ? 'No answers yet' : `${correct.length} of ${answered.length} correct`}
-                      </span>
-                    </div>
-
-                    <div className="space-y-[24px]">
-                      {CONDITION_KEYS.map((key) => {
-                        const label = CONDITION_LABELS[key];
-                        const engineHolds = assessment[key];
-                        const userGuess = guesses[key];
-                        const isAnswered = userGuess !== undefined;
-                        const isCorrect = userGuess === engineHolds;
-
-                        return (
-                          <div key={key} className="border border-line p-[20px] bg-white">
-                            <div className="flex items-baseline justify-between mb-[8px]">
-                              <span className="text-panel-heading">
-                                {label}
-                              </span>
-                              <span className="font-mono text-[13px] text-muted">
-                                engine: {engineHolds ? 'holds' : 'does not hold'}
-                              </span>
-                            </div>
-                            <p className="text-body-mono mb-[16px]">
-                              {assessment.reasons[key]}
-                            </p>
-
-                            <div className="flex gap-[8px] mb-[12px]">
-                              <Button
-                                variant={userGuess === true ? 'primary' : 'secondary'}
-                                className="flex-1"
-                                onClick={() => setGuesses((g) => ({ ...g, [key]: true }))}
-                                data-testid={`guess-holds-${key}`}
-                              >
-                                Holds
-                              </Button>
-                              <Button
-                                variant={userGuess === false ? 'primary' : 'secondary'}
-                                className="flex-1"
-                                onClick={() => setGuesses((g) => ({ ...g, [key]: false }))}
-                                data-testid={`guess-not-holds-${key}`}
-                              >
-                                Does not hold
-                              </Button>
-                            </div>
-
-                            {isAnswered && (
-                              <div
-                                className="font-mono text-[13px] mt-[8px]"
-                                data-testid={`guess-result-${key}`}
-                              >
-                                {isCorrect ? (
-                                  <span className="text-success font-medium">✓ Correct: agreed with the engine.</span>
-                                ) : (
-                                  <span className="text-danger font-medium">
-                                    ✕ The engine says this condition {engineHolds ? 'holds' : 'does not hold'}.
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <Button
-                      variant="secondary"
-                      onClick={() => setGuesses({})}
+                <div className="space-y-12 max-w-[68ch]">
+                  {COFFMAN_CONDITIONS.map((cond) => (
+                    <div
+                      key={cond.key}
+                      className="border border-line p-16 bg-white"
                     >
-                      Reset answers
-                    </Button>
-                  </div>
-                )}
+                      <h2 className="font-poppins text-[15px] font-semibold text-ink mb-8">
+                        {cond.title}
+                      </h2>
+                      <p className="font-mono text-small-mono text-muted leading-relaxed">
+                        {cond.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             {topic === 'RAG vs WFG' && (
               <div>
-                <h1 className="text-page-title mb-[16px]">
-                  RAG vs WFG
+                <h1 className="font-poppins text-page-title text-ink font-semibold mb-16">
+                  Resource Allocation Graph vs Wait-For Graph
                 </h1>
-                <div className="space-y-[16px] text-body-mono mb-[24px] max-w-[68ch]">
+                <div className="space-y-16 font-mono text-body-mono text-muted max-w-[68ch] mb-24">
                   <p>
-                    A <strong>Resource Allocation Graph (RAG)</strong> is a directed bipartite graph containing two node sets: Processes (circles) and Resources (squares). Edges represent assignments (Resource → Process) and requests (Process → Resource).
+                    A <strong>Resource Allocation Graph (RAG)</strong> is a bipartite directed graph consisting of Process nodes (circles) and Resource nodes (boxes). Edges represent resource state:
                   </p>
+                  <ul className="list-disc list-inside space-y-4">
+                    <li><strong>Request edge (P → R):</strong> Process P is waiting for resource R.</li>
+                    <li><strong>Assignment edge (R → P):</strong> Resource R is currently allocated to process P.</li>
+                  </ul>
                   <p>
                     A <strong>Wait-For Graph (WFG)</strong> is a directed graph containing only process nodes. An edge P<sub>i</sub> → P<sub>j</sub> exists if P<sub>i</sub> is requesting a resource currently held by P<sub>j</sub>. The WFG is obtained by collapsing resource nodes out of a single-instance RAG.
                   </p>
                 </div>
-                <div className="border border-line p-[24px] bg-white max-w-[68ch]">
+                <div className="w-full">
                   <RagVsWfgDiagram scenario={scenario} />
                 </div>
               </div>
@@ -250,10 +209,10 @@ export function Learn() {
 
             {topic === 'Detection' && (
               <div>
-                <h1 className="text-page-title mb-[16px]">
+                <h1 className="font-poppins text-page-title text-ink font-semibold mb-16">
                   Detection Algorithms
                 </h1>
-                <div className="space-y-[16px] text-body-mono max-w-[68ch]">
+                <div className="space-y-16 font-mono text-body-mono text-muted max-w-[68ch]">
                   <p>
                     <strong>Single-Instance Resources:</strong> In systems where every resource class contains exactly one instance, a cycle in the Wait-For Graph is both necessary and sufficient for a deadlock. Tarjan&apos;s Strongly Connected Components (SCC) or DFS cycle detection identifies all cycle members in O(V + E) time.
                   </p>
@@ -266,10 +225,10 @@ export function Learn() {
 
             {topic === 'Prevention vs Avoidance vs Recovery' && (
               <div>
-                <h1 className="text-page-title mb-[16px]">
+                <h1 className="font-poppins text-page-title text-ink font-semibold mb-16">
                   Prevention, Avoidance, and Recovery
                 </h1>
-                <div className="space-y-[16px] text-body-mono max-w-[68ch]">
+                <div className="space-y-16 font-mono text-body-mono text-muted max-w-[68ch]">
                   <p>
                     <strong>Deadlock Prevention:</strong> Design the system protocol such that at least one of the four Coffman conditions can never hold. Examples include total resource ordering (eliminates circular wait) and atomic all-at-once allocation (eliminates hold and wait).
                   </p>
@@ -285,27 +244,32 @@ export function Learn() {
 
             {topic === 'Complexity' && (
               <div>
-                <h1 className="text-page-title mb-[16px]">
+                <h1 className="font-poppins text-page-title text-ink font-semibold mb-8">
                   Algorithm Complexity
                 </h1>
-                <div className="w-full border border-line overflow-hidden">
+                <p className="font-mono text-body-mono text-muted mb-16 max-w-[72ch]">
+                  Asymptotic time and space complexity for all deadlock detection, prevention, and recovery routines.
+                </p>
+                <div className="w-full border border-line bg-white overflow-x-auto shadow-sm">
                   <table
-                    className="w-full font-mono text-[14px] text-left border-collapse table-fixed"
+                    className="w-full font-mono text-[11px] text-left border-collapse"
                     aria-label="Algorithm complexity table"
                   >
                     <thead>
-                      <tr className="border-b border-line bg-tint-bg text-muted h-[40px]">
-                        <th className="px-[16px] py-[10px] font-medium whitespace-nowrap w-[210px]">Algorithm</th>
-                        <th className="px-[16px] py-[10px] font-medium whitespace-nowrap w-[110px]">Time</th>
-                        <th className="px-[16px] py-[10px] font-medium">Notes</th>
+                      <tr className="border-b border-line bg-tint-bg text-muted h-[30px]">
+                        <th className="px-10 py-3 font-medium whitespace-nowrap text-ink">Algorithm</th>
+                        <th className="px-10 py-3 font-medium whitespace-nowrap text-ink">Time</th>
+                        <th className="px-10 py-3 font-medium whitespace-nowrap text-ink">Space</th>
+                        <th className="px-10 py-3 font-medium text-ink">Notes</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-line bg-white text-ink">
+                    <tbody className="divide-y divide-line text-ink">
                       {COMPLEXITY.map((row) => (
-                        <tr key={row.algorithm} className="h-[44px] max-h-[44px]">
-                          <td className="px-[16px] py-[10px] font-semibold whitespace-nowrap truncate">{row.algorithm}</td>
-                          <td className="px-[16px] py-[10px] text-muted whitespace-nowrap">{row.time}</td>
-                          <td className="px-[16px] py-[10px] text-muted text-[13px] max-[480px]:text-[12px] truncate">{row.note}</td>
+                        <tr key={row.algorithm} className="h-[30px] hover:bg-tint-bg/40 transition-colors">
+                          <td className="px-10 py-3 font-normal whitespace-nowrap text-navy">{row.algorithm}</td>
+                          <td className="px-10 py-3 font-normal whitespace-nowrap text-ink">{row.time}</td>
+                          <td className="px-10 py-3 text-muted whitespace-nowrap">{row.space}</td>
+                          <td className="px-10 py-3 text-muted leading-snug">{row.note}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -16,10 +16,10 @@ export function Chip({
   return (
     <div
       className={clsx(
-        'inline-flex items-center justify-center gap-6 h-[var(--chip-h)] px-10 border border-line bg-white font-mono text-[12px] text-ink whitespace-nowrap select-none rounded-none',
-        tone === 'danger' && 'border-danger bg-danger-tint text-danger',
-        tone === 'success' && 'border-success bg-success-tint text-success',
-        tone === 'warning' && 'border-warning bg-warning-tint text-warning',
+        'inline-flex items-center justify-center gap-6 h-[28px] px-8 border border-line bg-white font-mono text-[12px] text-ink whitespace-nowrap select-none rounded-none',
+        tone === 'danger' && 'border-danger/30 bg-danger-tint text-danger',
+        tone === 'success' && 'border-success/30 bg-success-tint text-success',
+        tone === 'warning' && 'border-warning/30 bg-warning-tint text-warning',
         className
       )}
       {...props}

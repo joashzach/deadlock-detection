@@ -44,7 +44,7 @@ export function PolicyToast() {
       initial={reducedMotion ? false : { y: 12 }}
       animate={{ y: 0 }}
       transition={{ duration: reducedMotion ? 0 : 0.18 }}
-      className="fixed bottom-[64px] right-24 z-50 bg-white border border-line border-l-4 border-l-warning p-16 max-w-[380px] shadow-none rounded-none"
+      className="absolute bottom-16 right-16 z-40 bg-white border border-line border-l-4 border-l-warning p-14 max-w-[360px] shadow-sm rounded-none"
       role="status"
       aria-live="polite"
       data-testid="policy-toast"

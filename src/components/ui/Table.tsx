@@ -9,7 +9,7 @@ export function Table({ children, className, ...props }: TableProps) {
   return (
     <div className="w-full overflow-x-auto border border-line">
       <table
-        className={clsx('w-full border-collapse font-mono text-[14px] text-left', className)}
+        className={clsx('w-full border-collapse font-mono text-[13px] text-left', className)}
         {...props}
       >
         {children}
@@ -36,7 +36,7 @@ export function TableBody({ children, className, ...props }: React.HTMLAttribute
 
 export function TableRow({ children, className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
   return (
-    <tr className={clsx('transition-colors hover:bg-tint-bg/50', className)} {...props}>
+    <tr className={clsx('transition-colors hover:bg-tint-bg/50 max-h-[44px]', className)} {...props}>
       {children}
     </tr>
   );
@@ -44,7 +44,7 @@ export function TableRow({ children, className, ...props }: React.HTMLAttributes
 
 export function TableHead({ children, className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <th className={clsx('p-12 font-medium', className)} {...props}>
+    <th className={clsx('h-[40px] px-16 py-10 font-medium whitespace-nowrap', className)} {...props}>
       {children}
     </th>
   );
@@ -52,7 +52,7 @@ export function TableHead({ children, className, ...props }: React.ThHTMLAttribu
 
 export function TableCell({ children, className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td className={clsx('p-12', className)} {...props}>
+    <td className={clsx('px-16 py-10 whitespace-nowrap', className)} {...props}>
       {children}
     </td>
   );

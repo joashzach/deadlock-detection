@@ -43,9 +43,9 @@ export function Tabs<T extends string>({
             data-testid={tab.testId}
             onClick={() => onChange(tab.id)}
             className={clsx(
-              'h-full font-poppins text-tab font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center border-b-2 rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy focus-visible:outline-offset-2',
+              'h-full font-poppins text-tab font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center border-b-2 -mb-[1px] rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy focus-visible:outline-offset-2',
               isActive
-                ? 'text-ink font-semibold border-navy'
+                ? 'text-ink font-medium border-navy'
                 : 'text-muted border-transparent hover:text-ink'
             )}
           >

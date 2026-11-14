@@ -24,7 +24,6 @@ const STEPS = [
 ];
 
 export function Landing() {
-  // Engine detection result for classic deadlock preset - computed from engine, never hardcoded
   const classicPreset = PRESETS['classic-deadlock'];
   const detectionResult = useMemo(() => {
     if (!classicPreset?.state) return null;
@@ -34,14 +33,17 @@ export function Landing() {
   const chipText = detectionResult?.hasDeadlock ? 'Deadlock detected' : 'No deadlock';
 
   return (
-    <div className="w-full bg-white flex flex-col min-h-0 select-none">
-      {/* Hero Section: fills exactly first screen (min-height: calc(100dvh - var(--nav-h))), vertically centered */}
+    <div
+      className="w-full h-full overflow-y-auto select-none bg-white"
+      style={{ scrollbarGutter: 'stable' }}
+    >
+      {/* Hero Section: fills exactly first screen (min-height 100% of row 2), vertically centered */}
       <section
-        className="w-full bg-tint-bg min-h-[calc(100dvh-var(--nav-h))] flex items-center px-[var(--page-pad-x)] max-md:px-16 py-[32px]"
+        className="w-full bg-tint-bg min-h-[calc(100dvh-var(--nav-h))] flex items-center px-[var(--page-pad-x)] py-32"
         data-testid="landing-hero"
       >
         <div className="max-w-[1440px] w-full mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-[clamp(32px,5vw,96px)]">
-          {/* Left Hero Content: h1 (2 lines at >=1024px) + mono paragraph (max 480px) */}
+          {/* Left Hero Content: H1 (2 lines at >=1024px) + mono paragraph (max 480px) */}
           <div className="w-full">
             <h1
               className="font-poppins text-ink font-semibold text-[clamp(32px,3.4vw,48px)] leading-[1.15]"
@@ -51,7 +53,7 @@ export function Landing() {
               <br />
               Then understand them.
             </h1>
-            <p className="mt-[24px] font-mono text-[16px] leading-[1.8] text-muted max-w-[480px]">
+            <p className="mt-24 font-mono text-[15px] leading-[1.8] text-muted max-w-[480px]">
               Simulate processes and resources, then watch detection, avoidance, prevention and recovery run one step at a time.
             </p>
           </div>
@@ -61,26 +63,21 @@ export function Landing() {
             className="w-full max-w-[560px] bg-white border border-line shadow-none rounded-none justify-self-center lg:justify-self-end"
             data-testid="hero-figure-card"
           >
-            {/* Header: clamp(44px, 6vh, 56px) + danger chip */}
-            <div
-              className="px-[24px] border-b border-line flex items-center justify-between"
-              style={{ height: 'clamp(44px, 6vh, 56px)' }}
-            >
+            {/* Header: mono header with title and danger chip from engine */}
+            <div className="px-24 h-[56px] border-b border-line flex items-center justify-between">
               <span className="font-mono text-[14px] text-ink font-medium">
                 Classic 2-process deadlock
               </span>
               <span
-                className="inline-flex items-center px-[8px] py-[2px] border border-danger/30 bg-danger-tint text-danger font-mono text-[12px] font-medium"
+                className="inline-flex items-center px-8 py-2 border border-danger/30 bg-danger-tint text-danger font-mono text-[12px] font-medium"
                 data-testid="hero-status-chip"
               >
                 {chipText}
               </span>
             </div>
 
-            {/* LIVE engine-rendered graph */}
-            <div
-              className="flex items-center justify-center p-[32px] md:p-[48px]"
-            >
+            {/* LIVE engine-rendered graph with 24px padding */}
+            <div className="flex items-center justify-center p-24">
               <svg
                 viewBox="0 0 380 200"
                 className="w-full h-auto max-w-[360px]"
@@ -190,26 +187,26 @@ export function Landing() {
         </div>
       </section>
 
-      {/* How it works Section: starts directly below hero, section padding clamp(64px, 10vh, 96px) vertical, 28px heading, 40px gap */}
-      <section className="w-full bg-white py-[clamp(64px,10vh,96px)] px-[var(--page-pad-x)] max-md:px-16">
+      {/* How it works Section: starts directly below hero, padding 64px vertical, section heading 28px, 24px gap */}
+      <section className="w-full bg-white py-64 px-[var(--page-pad-x)]">
         <div className="max-w-[1440px] mx-auto">
-          <h2 className="font-poppins text-[28px] font-semibold leading-[1.3] text-ink mb-[40px]">
+          <h2 className="font-poppins text-page-title font-semibold leading-[1.3] text-ink mb-24">
             How it works
           </h2>
 
           <div
-            className="grid grid-cols-1 lg:grid-cols-3 gap-[40px]"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-48"
             data-testid="how-it-works-columns"
           >
             {STEPS.map((step) => (
-              <div key={step.num} className="border-t-2 border-ink pt-[24px]">
+              <div key={step.num} className="border-t-2 border-ink pt-24">
                 <span className="font-mono text-[14px] text-navy font-semibold block">
                   {step.num}
                 </span>
-                <h3 className="font-poppins text-[20px] text-ink font-semibold mt-[8px] mb-[12px]">
+                <h3 className="font-poppins text-section-heading text-ink font-semibold mt-8 mb-12">
                   {step.title}
                 </h3>
-                <p className="font-mono text-[15px] leading-[1.8] text-muted">
+                <p className="font-mono text-body-mono leading-[1.8] text-muted">
                   {step.description}
                 </p>
               </div>
@@ -220,4 +217,3 @@ export function Landing() {
     </div>
   );
 }
-
