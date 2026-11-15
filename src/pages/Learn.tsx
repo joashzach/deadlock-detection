@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import clsx from 'clsx';
+import { motion } from 'framer-motion';
 import { useLabStore } from '../store/useLabStore';
 import { COMPLEXITY } from '../lib/complexity';
 import { RagVsWfgDiagram } from '../components/LearnDiagrams';
@@ -93,27 +94,34 @@ export function Learn() {
                 aria-selected={active}
                 aria-controls="learn-panel"
                 className={clsx(
-                  'text-left font-poppins transition-colors cursor-pointer rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy group',
-                  // Desktop: compact vertical padding and tight gap so all 6 modules are easily visible without scrolling
-                  'md:w-full md:flex md:items-center md:gap-10 md:px-14 md:py-6 md:border-l-2 md:border-b-0',
+                  'relative text-left font-poppins transition-colors cursor-pointer rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy group select-none',
+                  // Desktop: comfortable vertical padding and spacing for 6 modules
+                  'md:w-full md:flex md:items-center md:gap-10 md:px-14 md:py-7',
                   // Mobile
-                  'max-md:h-full max-md:px-10 max-md:flex max-md:items-center max-md:gap-6 max-md:whitespace-nowrap max-md:border-b-2 max-md:border-l-0 max-md:shrink-0',
+                  'max-md:h-full max-md:px-10 max-md:flex max-md:items-center max-md:gap-6 max-md:whitespace-nowrap max-md:shrink-0',
                   active
-                    ? 'md:border-l-navy md:bg-tint-bg max-md:border-b-navy text-ink font-medium'
-                    : 'md:border-l-transparent md:hover:bg-tint-bg/50 max-md:border-b-transparent text-muted hover:text-ink'
+                    ? 'text-ink font-medium'
+                    : 'text-muted hover:text-ink hover:bg-tint-bg/40'
                 )}
                 onClick={() => handleSelectTopic(t)}
               >
+                {active && (
+                  <motion.div
+                    layoutId="learn-module-indicator"
+                    className="absolute inset-0 bg-tint-bg md:border-l-[3px] md:border-l-navy max-md:border-b-2 max-md:border-b-navy pointer-events-none z-0"
+                    transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                  />
+                )}
                 <span
                   className={clsx(
-                    'font-mono text-[11px] tabular-nums shrink-0 select-none transition-colors',
+                    'relative z-10 font-mono text-[12px] tabular-nums shrink-0 select-none transition-colors',
                     active ? 'text-navy font-semibold' : 'text-muted'
                   )}
                   aria-hidden="true"
                 >
                   {num}
                 </span>
-                <span className="text-[13px] leading-snug whitespace-normal break-words">
+                <span className="relative z-10 text-[15px] leading-snug whitespace-normal break-words">
                   {t}
                 </span>
               </button>

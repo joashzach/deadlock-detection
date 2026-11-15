@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useLabStore } from '../store/useLabStore';
 import { SimulatorState } from '../engine/simulator';
 import { MiniGraph } from './MiniGraph';
@@ -61,7 +62,7 @@ export function SimulatorView({ hideHeader = false }: { hideHeader?: boolean } =
       </div>
 
       {/* Two equal-width, equal-height bordered white panels side by side filling remaining height */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-16 min-h-0">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-12 min-h-0">
         <RunPanel label="Without policies" run={simulator.baseline} testId="run-baseline" />
         <RunPanel label="With policies" run={simulator.policied} testId="run-policied" />
       </div>
@@ -124,25 +125,28 @@ function RunPanel({
 
   return (
     <section
-      className="border border-line bg-white flex flex-col justify-between h-full min-h-0"
+      className="border border-line bg-white flex flex-col justify-between h-full min-h-0 overflow-hidden"
       data-testid={testId}
     >
-      {/* Panel header: 48px, Poppins 16/600 on left, mono 12 status tag on right */}
-      <div className="flex items-center justify-between shrink-0 h-[48px] min-h-[48px] px-[24px] border-b border-line bg-white">
-        <h3 className="font-poppins text-panel-heading font-semibold text-ink">{label}</h3>
-        <div>
+      {/* Panel header: unified 44px height, vertically and horizontally centered badges */}
+      <div className="flex items-center justify-between shrink-0 h-[44px] min-h-[44px] px-12 md:px-16 border-b border-line bg-white gap-8">
+        <h3 className="font-poppins text-[13px] md:text-[14px] font-semibold text-ink whitespace-nowrap shrink-0">
+          {label}
+        </h3>
+        <div className="flex items-center shrink-0">
           {isWithout && (
-            <span className="inline-flex items-center px-8 py-2 border border-danger/30 bg-danger-tint font-mono text-[12px] text-danger font-medium">
+            <span className="inline-flex items-center justify-center text-center whitespace-nowrap px-8 py-1.5 border border-danger/30 bg-danger-tint font-mono text-[11px] text-danger font-medium leading-none">
               {hasDeadlock ? 'deadlocked' : 'deadlock expected'}
             </span>
           )}
           {isWith && (
             <span
-              className={`inline-flex items-center px-8 py-2 border font-mono text-[12px] font-medium ${
+              className={clsx(
+                'inline-flex items-center justify-center text-center whitespace-nowrap px-8 py-1.5 border font-mono text-[11px] font-medium leading-none',
                 hasDeadlock
                   ? 'border-danger/30 bg-danger-tint text-danger'
                   : 'border-success/30 bg-success-tint text-success'
-              }`}
+              )}
             >
               {hasDeadlock ? 'deadlock detected' : 'deadlock-free'}
             </span>
@@ -150,8 +154,8 @@ function RunPanel({
         </div>
       </div>
 
-      {/* Body: Graph centered and scaled to panel */}
-      <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden p-[24px]">
+      {/* Body: Graph centered and scaled to panel with clean unified padding */}
+      <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden p-12 md:p-16">
         <MiniGraph
           scenario={displayScenario}
           dangerIds={dangerIds}
@@ -160,10 +164,10 @@ function RunPanel({
         />
       </div>
 
-      {/* Footer: padding 0 24px 24px, single row of equal chips (32px), then mono 12 muted summary */}
-      <div className="pt-0 shrink-0 px-[24px] pb-[24px]">
+      {/* Footer: unified padding, single row of equal chips, then mono muted summary */}
+      <div className="pt-0 shrink-0 px-12 md:px-16 pb-12 md:pb-16">
         <div
-          className="flex gap-[8px] items-center w-full mb-[12px] flex-nowrap overflow-hidden"
+          className="flex gap-6 items-center w-full mb-8 flex-nowrap overflow-hidden"
           data-testid={`${testId}-processes`}
         >
           {run.processStatuses.map((p) => {
@@ -171,11 +175,11 @@ function RunPanel({
             return (
               <div
                 key={p.processId}
-                className="flex-1 min-w-0 h-[var(--chip-h)] border border-line bg-white flex items-center justify-center gap-6 px-4 font-mono text-[12px] text-ink whitespace-nowrap overflow-hidden"
+                className="flex-1 min-w-0 h-[28px] border border-line bg-white flex items-center justify-center gap-4 px-3 font-mono text-[11px] text-ink whitespace-nowrap overflow-hidden"
                 title={`${p.processId}: ${p.state}`}
               >
                 <span
-                  className="w-[6px] h-[6px] rounded-none shrink-0"
+                  className="w-[5px] h-[5px] rounded-none shrink-0"
                   style={{ backgroundColor: dotColor }}
                   aria-hidden="true"
                 />
@@ -185,7 +189,7 @@ function RunPanel({
           })}
         </div>
 
-        <div className="font-mono text-[12px] text-muted">
+        <div className="font-mono text-[11px] text-muted">
           {summary}
         </div>
       </div>

@@ -121,12 +121,12 @@ export function RightPanel() {
                 </p>
               </div>
             ) : (
-              <div>
+              <div data-testid="graph-ready">
                 <h3 className="font-poppins text-[14px] font-semibold text-ink leading-snug mb-8">
-                  Ready to simulate
+                  Ready to detect
                 </h3>
                 <p className="font-mono text-[12px] text-muted leading-relaxed">
-                  Run detection or start playback to inspect step-by-step decisions in plain English.
+                  Click Detect or press Play to run deadlock detection and inspect step-by-step decisions in plain English.
                 </p>
               </div>
             )}

@@ -106,12 +106,12 @@ export function PlaybackBar() {
   return (
     <div
       data-testid="playback-bar"
-      className="bg-white border border-line flex items-center justify-between shrink-0 select-none z-10 w-full h-[48px] min-h-[48px] max-h-[48px] px-6 gap-3 overflow-x-auto no-scrollbar"
+      className="bg-white border border-line flex items-center justify-between shrink-0 select-none z-10 w-full h-[48px] min-h-[48px] max-h-[48px] px-8 gap-4 overflow-x-auto no-scrollbar"
       role="toolbar"
       aria-label="Algorithm playback"
     >
       {/* Left controls: Execution & Playback */}
-      <div className="flex items-center gap-3 shrink-0 flex-nowrap">
+      <div className="flex items-center gap-2 shrink-0 flex-nowrap">
         {isSim ? (
           <>
             {/* Simulator toolbar: Play | Step | Run to end | Reset */}
@@ -123,7 +123,7 @@ export function PlaybackBar() {
               aria-pressed={isPlaying}
               aria-label={isPlaying ? 'Pause' : 'Play'}
               data-testid="sim-play"
-              className="flex items-center justify-center gap-4 text-[12px] font-medium h-[32px] px-7"
+              className="flex items-center justify-center gap-2 text-[12px] font-medium h-[32px] px-8"
             >
               {isPlaying ? <PauseIcon size={13} /> : <PlayIcon size={13} />}
               <span>{isPlaying ? 'Pause' : 'Play'}</span>
@@ -136,7 +136,7 @@ export function PlaybackBar() {
               disabled={simFinished}
               aria-label="Step"
               data-testid="sim-step"
-              className="text-[12px] font-medium h-[32px] px-6"
+              className="text-[12px] font-medium h-[32px] px-8"
             >
               Step
             </Button>
@@ -148,7 +148,7 @@ export function PlaybackBar() {
               disabled={simFinished}
               aria-label="Run to end"
               data-testid="sim-run-to-end"
-              className="text-[12px] font-medium h-[32px] px-6"
+              className="text-[12px] font-medium h-[32px] px-8"
             >
               Run to end
             </Button>
@@ -159,7 +159,7 @@ export function PlaybackBar() {
               onClick={handleReset}
               aria-label="Reset"
               data-testid="reset-simulator"
-              className="text-[12px] font-medium h-[32px] px-6"
+              className="text-[12px] font-medium h-[32px] px-8"
             >
               Reset
             </Button>
@@ -173,7 +173,7 @@ export function PlaybackBar() {
               onClick={runDetection}
               aria-label="Detect deadlock"
               data-testid="detect-button"
-              className="flex items-center justify-center text-[12px] font-medium h-[32px] px-7"
+              className="flex items-center justify-center text-[12px] font-medium h-[32px] px-8"
             >
               Detect
             </Button>
@@ -262,7 +262,7 @@ export function PlaybackBar() {
 
       {/* Right controls: Divider | Undo | Redo | Speed/Tick */}
       <div className="flex items-center gap-2 shrink-0 flex-nowrap">
-        <div className="h-[20px] w-[1px] bg-line/80 mx-1 shrink-0" aria-hidden="true" />
+        <div className="h-[20px] w-[1px] bg-line/80 mx-2 shrink-0" aria-hidden="true" />
 
         <Button
           variant="secondary"
@@ -271,7 +271,7 @@ export function PlaybackBar() {
           disabled={pastLength === 0}
           aria-label="Undo"
           title="Undo (Ctrl+Z)"
-          className="text-[12px] font-medium h-[32px] px-5"
+          className="text-[12px] font-medium h-[32px] px-8"
         >
           Undo
         </Button>
@@ -282,7 +282,7 @@ export function PlaybackBar() {
           disabled={futureLength === 0}
           aria-label="Redo"
           title="Redo (Ctrl+Y)"
-          className="text-[12px] font-medium h-[32px] px-5"
+          className="text-[12px] font-medium h-[32px] px-8"
         >
           Redo
         </Button>
@@ -291,7 +291,7 @@ export function PlaybackBar() {
         <div ref={speedRef} className="relative inline-flex items-center shrink-0">
           <button
             type="button"
-            className="h-[32px] px-3 inline-flex items-center justify-center font-mono text-[11px] text-muted hover:text-ink cursor-pointer transition-colors whitespace-nowrap border border-line bg-white hover:bg-tint-bg rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy shrink-0"
+            className="h-[32px] px-6 inline-flex items-center justify-center font-mono text-[11px] text-muted hover:text-ink cursor-pointer transition-colors whitespace-nowrap border border-line bg-white hover:bg-tint-bg rounded-none outline-none focus-visible:outline-2 focus-visible:outline-navy shrink-0"
             onClick={() => setSpeedMenuOpen(!speedMenuOpen)}
             aria-label={
               isSim
